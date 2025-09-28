@@ -23,13 +23,18 @@ const defaultState = {
   },
 };
 
+console.log("Loading state...");
 let state = loadState();
+console.log("State loaded:", !!state, "Tasks:", state?.tasks?.length || 0);
+
 if (!state.guide) {
   state.guide = clone(defaultState.guide);
 }
 if (typeof state.settings.guideMode !== "boolean") {
   state.settings.guideMode = defaultState.settings.guideMode;
 }
+
+console.log("State initialization complete:", state);
 
 const guideFlow = [
   { key: "intro", mode: "intro", label: "Introduction" },
@@ -105,60 +110,89 @@ const coachTips = [
   "Delete the stale. Make space for the effortless.",
 ];
 
-const elements = {
-  guidanceBar: document.getElementById("guidanceBar"),
-  coachTips: document.getElementById("coachTips"),
-  introPage: document.getElementById("introPage"),
-  modeSection: document.getElementById("modeSection"),
-  startRezero: document.getElementById("startRezero"),
-  panels: {
-    listInstructions: document.getElementById("listInstructions"),
-    list: document.getElementById("listMode"),
-    scanInstructions: document.getElementById("scanInstructions"),
-    scan: document.getElementById("scanMode"),
-    actionInstructions: document.getElementById("actionInstructions"),
-    action: document.getElementById("actionMode"),
-    maintainInstructions: document.getElementById("maintainInstructions"),
-    maintain: document.getElementById("maintainMode"),
-    reflectInstructions: document.getElementById("reflectInstructions"),
-    reflect: document.getElementById("reflectMode"),
-  },
-  taskForm: document.getElementById("taskForm"),
-  taskText: document.getElementById("taskText"),
-  taskResistance: document.getElementById("taskResistance"),
-  taskLevel: document.getElementById("taskLevel"),
-  taskNotes: document.getElementById("taskNotes"),
-  listPreview: document.getElementById("listPreview"),
-  scanDirectionButtons: Array.from(document.querySelectorAll(".scan-direction")),
-  startScan: document.getElementById("startScan"),
-  scanView: document.getElementById("scanView"),
-  scanStatus: document.getElementById("scanStatus"),
-  actionList: document.getElementById("actionList"),
-  maintenanceList: document.getElementById("maintenanceList"),
-  completedList: document.getElementById("completedList"),
-  archivedList: document.getElementById("archivedList"),
-  metrics: {
-    total: document.getElementById("metricTotalTasks"),
-    dotted: document.getElementById("metricDotted"),
-    active: document.getElementById("metricActive"),
-  },
-  insights: {
-    scans: document.getElementById("insightScans"),
-    dots: document.getElementById("insightDots"),
-    minutes: document.getElementById("insightMinutes"),
-  },
-  guide: {
-    controls: document.getElementById("guideControls"),
-    prev: document.getElementById("guidePrev"),
-    next: document.getElementById("guideNext"),
-    progress: document.getElementById("guideProgressLabel"),
-    listStart: document.getElementById("startListBuilding"),
-    scanAdvance: document.getElementById("startScanningStage"),
-    actionAdvance: document.getElementById("startActionStage"),
-    maintainAdvance: document.getElementById("startMaintenanceStage"),
-    reflectAdvance: document.getElementById("startReflectionStage"),
-  },
-};
+const elements = (() => {
+  try {
+    console.log("Initializing elements...");
+    const els = {
+      guidanceBar: document.getElementById("guidanceBar"),
+      coachTips: document.getElementById("coachTips"),
+      introPage: document.getElementById("introPage"),
+      modeSection: document.getElementById("modeSection"),
+      startRezero: document.getElementById("startRezero"),
+      panels: {
+        listInstructions: document.getElementById("listInstructions"),
+        list: document.getElementById("listMode"),
+        scanInstructions: document.getElementById("scanInstructions"),
+        scan: document.getElementById("scanMode"),
+        actionInstructions: document.getElementById("actionInstructions"),
+        action: document.getElementById("actionMode"),
+        maintainInstructions: document.getElementById("maintainInstructions"),
+        maintain: document.getElementById("maintainMode"),
+        reflectInstructions: document.getElementById("reflectInstructions"),
+        reflect: document.getElementById("reflectMode"),
+      },
+      taskForm: document.getElementById("taskForm"),
+      taskText: document.getElementById("taskText"),
+      taskResistance: document.getElementById("taskResistance"),
+      taskLevel: document.getElementById("taskLevel"),
+      taskNotes: document.getElementById("taskNotes"),
+      listPreview: document.getElementById("listPreview"),
+      scanDirectionButtons: Array.from(document.querySelectorAll(".scan-direction")),
+      modeButtons: [],
+      startScan: document.getElementById("scanStart"),
+      scanView: document.getElementById("scanProgress"),
+      scanStatus: document.getElementById("scanCounter"),
+      actionList: document.getElementById("actionList"),
+      maintenanceList: document.getElementById("maintenanceList"),
+      completedList: document.getElementById("completedList"),
+      archivedList: document.getElementById("archivedList"),
+      metrics: {
+        total: document.getElementById("metricTotalTasks"),
+        dotted: document.getElementById("metricDotted"),
+        active: document.getElementById("metricActive"),
+      },
+      insights: {
+        scans: document.getElementById("insightScans"),
+        dots: document.getElementById("insightDots"),
+        minutes: document.getElementById("insightMinutes"),
+      },
+      guide: {
+        controls: document.getElementById("guideControls"),
+        prev: document.getElementById("guidePrev"),
+        next: document.getElementById("guideNext"),
+        progress: document.getElementById("guideProgressLabel"),
+        listStart: document.getElementById("startListBuilding"),
+        scanAdvance: document.getElementById("startScanningStage"),
+        actionAdvance: document.getElementById("startActionStage"),
+        maintainAdvance: document.getElementById("startMaintenanceStage"),
+        reflectAdvance: document.getElementById("startReflectionStage"),
+      },
+    };
+
+    // Check for missing critical elements
+    const critical = ['actionList', 'maintenanceList', 'listPreview'];
+    const missing = critical.filter(key => !els[key]);
+    if (missing.length > 0) {
+      console.warn("Missing critical elements:", missing);
+    }
+
+    console.log("Elements initialized successfully");
+    return els;
+  } catch (error) {
+    console.error("Elements initialization failed:", error);
+    return {
+      // Return minimal fallback elements
+      actionList: null,
+      maintenanceList: null,
+      listPreview: null,
+      panels: {},
+      guide: {},
+      metrics: {},
+      insights: {},
+      modeButtons: []
+    };
+  }
+})();
 
 if (elements.startRezero) {
   elements.startRezero.addEventListener("click", () => startResZeroFlow());
@@ -612,7 +646,21 @@ function updateGuideUI() {
 }
 
 function renderListPreview() {
-  elements.listPreview.innerHTML = "";
+  // Defensive element checking
+  const listPreview = elements?.listPreview || document.getElementById("listPreview");
+  if (!listPreview) {
+    console.warn("listPreview element not found");
+    return;
+  }
+
+  // Defensive state checking
+  if (!state || !state.tasks) {
+    console.warn("State or tasks not available for renderListPreview");
+    listPreview.innerHTML = "<li>Loading tasks...</li>";
+    return;
+  }
+
+  listPreview.innerHTML = "";
   state.tasks
     .filter((task) => task.status === "active")
     .forEach((task) => {
@@ -880,10 +928,25 @@ function completeScan() {
 
 function renderActionList() {
   if (currentMode !== "action") return;
-  elements.actionList.innerHTML = "";
+
+  // Defensive element checking
+  const actionList = elements?.actionList || document.getElementById("actionList");
+  if (!actionList) {
+    console.warn("actionList element not found");
+    return;
+  }
+
+  // Defensive state checking
+  if (!state || !state.tasks) {
+    console.warn("State or tasks not available for renderActionList");
+    actionList.textContent = "Loading tasks...";
+    return;
+  }
+
+  actionList.innerHTML = "";
   const dottedTasks = state.tasks.filter((task) => task.status === "active" && task.dotted);
   if (dottedTasks.length === 0) {
-    elements.actionList.textContent = "Dot tasks in Scanning mode to see them here.";
+    actionList.textContent = "Dot tasks in Scanning mode to see them here.";
     return;
   }
 
@@ -916,10 +979,25 @@ function renderActionList() {
 
 function renderMaintenanceList() {
   if (currentMode !== "maintain") return;
-  elements.maintenanceList.innerHTML = "";
+
+  // Defensive element checking
+  const maintenanceList = elements?.maintenanceList || document.getElementById("maintenanceList");
+  if (!maintenanceList) {
+    console.warn("maintenanceList element not found");
+    return;
+  }
+
+  // Defensive state checking
+  if (!state || !state.tasks) {
+    console.warn("State or tasks not available for renderMaintenanceList");
+    maintenanceList.textContent = "Loading tasks...";
+    return;
+  }
+
+  maintenanceList.innerHTML = "";
   const activeTasks = state.tasks.filter((task) => task.status === "active");
   if (activeTasks.length === 0) {
-    elements.maintenanceList.textContent = "Nothing to prune. Add tasks or re-enter recurring work.";
+    maintenanceList.textContent = "Nothing to prune. Add tasks or re-enter recurring work.";
     return;
   }
   activeTasks.forEach((task) => {
@@ -938,14 +1016,36 @@ function renderMaintenanceList() {
 
 function renderReflection() {
   if (currentMode !== "reflect") return;
+
+  // Defensive state checking
+  if (!state || !state.tasks) {
+    console.warn("State or tasks not available for renderReflection");
+    return;
+  }
+
+  // Defensive element checking
+  const completedList = elements?.completedList || document.getElementById("completedList");
+  const archivedList = elements?.archivedList || document.getElementById("archivedList");
+  const insights = elements?.insights || {
+    scans: document.getElementById("insightScans"),
+    dots: document.getElementById("insightDots"),
+    minutes: document.getElementById("insightMinutes")
+  };
+
+  if (!completedList || !archivedList) {
+    console.warn("Reflection list elements not found");
+    return;
+  }
+
   const day = today();
   const dailyStats = state.daily[day] || { scans: 0, dots: 0, minutes: 0 };
-  elements.insights.scans.textContent = `Scans today: ${dailyStats.scans || 0}`;
-  elements.insights.dots.textContent = `Tasks dotted today: ${dailyStats.dots || 0}`;
-  elements.insights.minutes.textContent = `Minutes logged: ${Math.round(dailyStats.minutes || 0)}`;
 
-  elements.completedList.innerHTML = "";
-  elements.archivedList.innerHTML = "";
+  if (insights.scans) insights.scans.textContent = `Scans today: ${dailyStats.scans || 0}`;
+  if (insights.dots) insights.dots.textContent = `Tasks dotted today: ${dailyStats.dots || 0}`;
+  if (insights.minutes) insights.minutes.textContent = `Minutes logged: ${Math.round(dailyStats.minutes || 0)}`;
+
+  completedList.innerHTML = "";
+  archivedList.innerHTML = "";
 
   state.tasks
     .filter((task) => task.status === "completed")
@@ -954,7 +1054,7 @@ function renderReflection() {
       const item = document.createElement("li");
       item.className = "reflection-item";
       item.textContent = `${task.text} • ${(task.timeLogs.reduce((acc, log) => acc + log.minutes, 0) || 0).toFixed(1)} min`;
-      elements.completedList.appendChild(item);
+      completedList.appendChild(item);
     });
 
   state.tasks
@@ -964,7 +1064,7 @@ function renderReflection() {
       const item = document.createElement("li");
       item.className = "reflection-item";
       item.textContent = `${task.text} • touched ${task.touches} times`;
-      elements.archivedList.appendChild(item);
+      archivedList.appendChild(item);
     });
 }
 
