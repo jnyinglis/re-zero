@@ -20,6 +20,7 @@ const defaultState = {
   guide: {
     started: false,
     activeIndex: 0,
+    view: "instructions",
   },
 };
 
@@ -30,10 +31,28 @@ if (!state.guide) {
 if (typeof state.settings.guideMode !== "boolean") {
   state.settings.guideMode = defaultState.settings.guideMode;
 }
+if (!state.guide.view || !["instructions", "workspace"].includes(state.guide.view)) {
+  state.guide.view = "instructions";
+}
+
+const guideFlow = [
+  { key: "list", mode: "list", label: "List Building" },
+  { key: "scan", mode: "scan", label: "Scanning" },
+  { key: "action", mode: "action", label: "Action" },
+  { key: "maintain", mode: "maintain", label: "Maintenance" },
+  { key: "reflect", mode: "reflect", label: "Reflection" },
+];
+
+const guideStepIndexByKey = guideFlow.reduce((map, step, index) => {
+  map[step.key] = index;
+  return map;
+}, {});
+
 let currentMode = "list";
 if (state.settings.guideMode && state.guide.started) {
   ensureGuideIndex();
-  currentMode = guideFlow[state.guide.activeIndex] || "list";
+  const step = guideFlow[state.guide.activeIndex];
+  currentMode = step ? step.mode : "list";
 }
 let scanSession = null;
 let activeTimer = null;
@@ -69,15 +88,6 @@ const guidanceByMode = {
     "Resistance Zero works best when it matches your instincts.",
     "Come back here anytime to tweak how the app feels.",
   ],
-};
-
-const guideFlow = ["list", "scan", "action", "maintain", "reflect"];
-const guideLabels = {
-  list: "List Building",
-  scan: "Scanning",
-  action: "Action",
-  maintain: "Maintenance",
-  reflect: "Reflection",
 };
 
 const coachTips = [
@@ -133,9 +143,23 @@ const elements = {
     prev: document.getElementById("guidePrev"),
     next: document.getElementById("guideNext"),
     progress: document.getElementById("guideProgressLabel"),
-    landing: document.getElementById("guideLanding"),
+    intro: document.getElementById("guideIntroPage"),
+    listInstructions: document.getElementById("listInstructions"),
     builder: document.getElementById("listBuilderContent"),
-    start: document.getElementById("guideStartButton"),
+    startRezero: document.getElementById("startRezero"),
+    listStart: document.getElementById("startListBuilding"),
+    scanInstructions: document.getElementById("scanInstructions"),
+    scanWorkspace: document.getElementById("scanWorkspace"),
+    scanAdvance: document.getElementById("startScanningStage"),
+    actionInstructions: document.getElementById("actionInstructions"),
+    actionContent: document.getElementById("actionContent"),
+    actionAdvance: document.getElementById("startActionStage"),
+    maintainInstructions: document.getElementById("maintainInstructions"),
+    maintainContent: document.getElementById("maintainContent"),
+    maintainAdvance: document.getElementById("startMaintenanceStage"),
+    reflectInstructions: document.getElementById("reflectInstructions"),
+    reflectContent: document.getElementById("reflectContent"),
+    reflectAdvance: document.getElementById("startReflectionStage"),
   },
 };
 
@@ -143,12 +167,44 @@ elements.modeButtons.forEach((button) => {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 });
 
-if (elements.guide.start) {
-  elements.guide.start.addEventListener("click", () => startGuideSession());
+if (elements.guide.startRezero) {
+  elements.guide.startRezero.addEventListener("click", () => startGuideSession());
+}
+
+if (elements.guide.listStart) {
+  elements.guide.listStart.addEventListener("click", () => {
+    moveToGuideStep("list", { view: "workspace" });
+    setTimeout(() => elements.taskText?.focus(), 0);
+  });
+}
+
+if (elements.guide.scanAdvance) {
+  elements.guide.scanAdvance.addEventListener("click", () => moveToGuideStep("scan", { view: "workspace" }));
+}
+
+if (elements.guide.actionAdvance) {
+  elements.guide.actionAdvance.addEventListener("click", () => moveToGuideStep("action", { view: "workspace" }));
+}
+
+if (elements.guide.maintainAdvance) {
+  elements.guide.maintainAdvance.addEventListener("click", () => moveToGuideStep("maintain", { view: "workspace" }));
+}
+
+if (elements.guide.reflectAdvance) {
+  elements.guide.reflectAdvance.addEventListener("click", () => moveToGuideStep("reflect", { view: "workspace" }));
 }
 
 if (elements.guide.prev) {
-  elements.guide.prev.addEventListener("click", () => navigateGuide(-1));
+  elements.guide.prev.addEventListener("click", () => {
+    if (!state.guide.started) return;
+    const currentStep = getCurrentGuideStep();
+    if (!currentStep) return;
+    if (state.guide.view === "workspace") {
+      moveToGuideStep(currentStep.key, { view: "instructions" });
+      return;
+    }
+    navigateGuide(-1);
+  });
 }
 
 if (elements.guide.next) {
@@ -254,14 +310,16 @@ document.getElementById("dotTask")?.addEventListener("click", () => advanceNewSc
 document.getElementById("finishScan")?.addEventListener("click", () => finishNewScan());
 
 // Scan direction setting
-function setMode(mode) {
+function setMode(mode, options = {}) {
   if (isGuideModeEnabled() && mode !== "settings") {
+    ensureGuideIndex();
     if (!state.guide.started) {
       state.guide.activeIndex = 0;
-      mode = "list";
-    } else {
-      ensureGuideIndex();
-      mode = guideFlow[state.guide.activeIndex] || "list";
+      const initialStep = guideFlow[state.guide.activeIndex];
+      mode = initialStep ? initialStep.mode : "list";
+    } else if (!options.overrideGuideStep) {
+      const step = guideFlow[state.guide.activeIndex];
+      mode = step ? step.mode : "list";
     }
   }
 
@@ -302,10 +360,24 @@ function ensureGuideIndex() {
   }
 }
 
-function startGuideSession() {
+function getCurrentGuideStep() {
+  if (!isGuideModeEnabled()) return null;
+  ensureGuideIndex();
+  return guideFlow[state.guide.activeIndex] || null;
+}
+
+function moveToGuideStep(key, options = {}) {
+  const index = guideStepIndexByKey[key];
+  if (typeof index !== "number") return;
   state.guide.started = true;
-  state.guide.activeIndex = 0;
-  setMode("list");
+  state.guide.activeIndex = index;
+  state.guide.view = options.view === "workspace" ? "workspace" : "instructions";
+  const step = guideFlow[index];
+  setMode(step ? step.mode : "list", { overrideGuideStep: true });
+}
+
+function startGuideSession() {
+  moveToGuideStep("list", { view: "instructions" });
 }
 
 function toggleGuideMode(enabled) {
@@ -313,12 +385,14 @@ function toggleGuideMode(enabled) {
   if (!enabled) {
     state.guide.started = false;
     state.guide.activeIndex = 0;
+    state.guide.view = "instructions";
     render();
     return;
   }
   state.guide.started = false;
   state.guide.activeIndex = 0;
-  setMode("list");
+  state.guide.view = "instructions";
+  setMode("list", { overrideGuideStep: true });
 }
 
 function navigateGuide(direction) {
@@ -330,7 +404,9 @@ function navigateGuide(direction) {
   );
   if (nextIndex === state.guide.activeIndex) return;
   state.guide.activeIndex = nextIndex;
-  setMode(guideFlow[state.guide.activeIndex]);
+  state.guide.view = "instructions";
+  const step = guideFlow[state.guide.activeIndex];
+  setMode(step ? step.mode : "list", { overrideGuideStep: true });
 }
 
 function handleGuideNext() {
@@ -346,13 +422,18 @@ function handleGuideNext() {
 function restartGuideFlow() {
   state.guide.started = false;
   state.guide.activeIndex = 0;
-  setMode("list");
+  state.guide.view = "instructions";
+  setMode("list", { overrideGuideStep: true });
 }
 
 function updateGuidance() {
   let message = "";
-  if (isGuideModeEnabled() && !state.guide.started && currentMode === "list") {
-    message = "Guide mode is ready. Press Start to move through the cycle.";
+  const currentStep = getCurrentGuideStep();
+  const guideEnabled = isGuideModeEnabled();
+  if (guideEnabled && currentMode === "list" && !state.guide.started) {
+    message = "Guide mode is ready. Press Start Rezero to move through the cycle.";
+  } else if (guideEnabled && currentStep && state.guide.view !== "workspace") {
+    message = `Review the instructions for ${currentStep.label}.`;
   } else {
     const messages = guidanceByMode[currentMode] || [];
     message = messages[Math.floor(Math.random() * messages.length)] || "";
@@ -421,13 +502,13 @@ function updateNavigation() {
     return;
   }
 
-  ensureGuideIndex();
-  const currentStep = guideFlow[state.guide.activeIndex] || "list";
+  const currentStep = getCurrentGuideStep();
+  const activeMode = currentStep ? currentStep.mode : null;
 
   elements.modeButtons.forEach((button) => {
     const mode = button.dataset.mode;
     const isSettings = mode === "settings";
-    const isActiveStep = mode === currentStep;
+    const isActiveStep = mode === activeMode;
     if (isSettings || isActiveStep) {
       button.classList.remove("hidden-button");
       button.disabled = mode === currentMode;
@@ -439,14 +520,115 @@ function updateNavigation() {
 
 function updateGuideUI() {
   const guideEnabled = isGuideModeEnabled();
-  const { landing, builder, controls, prev, next, progress } = elements.guide;
+  const {
+    intro,
+    listInstructions,
+    builder,
+    controls,
+    prev,
+    next,
+    progress,
+    scanInstructions,
+    scanWorkspace,
+    actionInstructions,
+    actionContent,
+    maintainInstructions,
+    maintainContent,
+    reflectInstructions,
+    reflectContent,
+  } = elements.guide;
 
-  const showLanding = guideEnabled && !state.guide.started && currentMode === "list";
-  if (landing) {
-    landing.classList.toggle("hidden", !showLanding);
+  const currentStep = getCurrentGuideStep();
+  const stepKey = currentStep?.key;
+
+  const view = state.guide?.view === "workspace" ? "workspace" : "instructions";
+  const showingInstructions = guideEnabled && state.guide.started && view !== "workspace";
+  const showingWorkspace = guideEnabled && state.guide.started && view === "workspace";
+
+  if (intro) {
+    const showIntro = guideEnabled && !state.guide.started && currentMode === "list";
+    intro.classList.toggle("hidden", !showIntro);
   }
+
+  if (listInstructions) {
+    const showListInstructions =
+      guideEnabled &&
+      state.guide.started &&
+      currentMode === "list" &&
+      stepKey === "list" &&
+      showingInstructions;
+    listInstructions.classList.toggle("hidden", !showListInstructions);
+  }
+
   if (builder) {
-    builder.classList.toggle("hidden", showLanding);
+    const showBuilder =
+      currentMode === "list" &&
+      (!guideEnabled || (state.guide.started && stepKey === "list" && showingWorkspace));
+    builder.classList.toggle("hidden", !showBuilder);
+  }
+
+  if (scanInstructions) {
+    const showScanInstructions =
+      guideEnabled &&
+      state.guide.started &&
+      currentMode === "scan" &&
+      stepKey === "scan" &&
+      showingInstructions;
+    scanInstructions.classList.toggle("hidden", !showScanInstructions);
+  }
+  if (scanWorkspace) {
+    const showScanWorkspace =
+      currentMode === "scan" &&
+      (!guideEnabled || (state.guide.started && stepKey === "scan" && showingWorkspace));
+    scanWorkspace.classList.toggle("hidden", !showScanWorkspace);
+  }
+
+  if (actionInstructions) {
+    const showActionInstructions =
+      guideEnabled &&
+      state.guide.started &&
+      currentMode === "action" &&
+      stepKey === "action" &&
+      showingInstructions;
+    actionInstructions.classList.toggle("hidden", !showActionInstructions);
+  }
+  if (actionContent) {
+    const showActionContent =
+      currentMode === "action" &&
+      (!guideEnabled || (state.guide.started && stepKey === "action" && showingWorkspace));
+    actionContent.classList.toggle("hidden", !showActionContent);
+  }
+
+  if (maintainInstructions) {
+    const showMaintainInstructions =
+      guideEnabled &&
+      state.guide.started &&
+      currentMode === "maintain" &&
+      stepKey === "maintain" &&
+      showingInstructions;
+    maintainInstructions.classList.toggle("hidden", !showMaintainInstructions);
+  }
+  if (maintainContent) {
+    const showMaintainContent =
+      currentMode === "maintain" &&
+      (!guideEnabled || (state.guide.started && stepKey === "maintain" && showingWorkspace));
+    maintainContent.classList.toggle("hidden", !showMaintainContent);
+  }
+
+  if (reflectInstructions) {
+    const showReflectInstructions =
+      guideEnabled &&
+      state.guide.started &&
+      currentMode === "reflect" &&
+      stepKey === "reflect" &&
+      showingInstructions;
+    reflectInstructions.classList.toggle("hidden", !showReflectInstructions);
+  }
+  if (reflectContent) {
+    const showReflectContent =
+      currentMode === "reflect" &&
+      (!guideEnabled || (state.guide.started && stepKey === "reflect" && showingWorkspace));
+    reflectContent.classList.toggle("hidden", !showReflectContent);
   }
 
   if (!controls) {
@@ -463,6 +645,10 @@ function updateGuideUI() {
     if (next) {
       next.textContent = "Next";
     }
+    if (prev) {
+      prev.textContent = "Previous";
+      prev.disabled = true;
+    }
     return;
   }
 
@@ -471,13 +657,18 @@ function updateGuideUI() {
   const totalSteps = guideFlow.length;
 
   if (progress) {
-    const stepKey = guideFlow[stepIndex] || "";
-    const stepName = guideLabels[stepKey] || capitalize(stepKey);
-    progress.textContent = `Step ${stepIndex + 1} of ${totalSteps}: ${stepName}`;
+    const label = currentStep?.label || capitalize(stepKey || "");
+    progress.textContent = `Step ${stepIndex + 1} of ${totalSteps}: ${label}`;
   }
 
   if (prev) {
-    prev.disabled = stepIndex === 0;
+    if (showingWorkspace) {
+      prev.textContent = "Instructions";
+      prev.disabled = false;
+    } else {
+      prev.textContent = "Previous";
+      prev.disabled = stepIndex === 0;
+    }
   }
 
   if (next) {
@@ -616,11 +807,16 @@ function beginScan() {
     index: 0,
     startedAt: Date.now(),
   };
-  elements.scanStatus.textContent = "Scanning in progress. Move quickly and trust intuition.";
+  if (elements.scanStatus) {
+    elements.scanStatus.textContent = "Scanning in progress. Move quickly and trust intuition.";
+  }
   renderScanView();
 }
 
 function renderScanView() {
+  if (!elements.scanView) {
+    return;
+  }
   if (!scanSession) {
     elements.scanView.classList.remove("active");
     elements.scanView.textContent = "Tap Start Scan to begin a full pass.";
@@ -721,19 +917,25 @@ function toggleDot(taskId) {
     markTaskDotted(task);
   }
   task.updatedAt = Date.now();
-  if (!wasDotted) {
-    elements.scanStatus.textContent = "Nice! Dotting marks the effortless tasks.";
-  } else {
-    elements.scanStatus.textContent = "Dot removed. Keep scanning.";
+  if (elements.scanStatus) {
+    if (!wasDotted) {
+      elements.scanStatus.textContent = "Nice! Dotting marks the effortless tasks.";
+    } else {
+      elements.scanStatus.textContent = "Dot removed. Keep scanning.";
+    }
   }
   saveState();
   render();
 }
 
 function completeScan() {
-  elements.scanStatus.textContent = "Scan complete. Move to Action mode when ready.";
-  elements.scanView.classList.remove("active");
-  elements.scanView.textContent = "Scan finished. Great work.";
+  if (elements.scanStatus) {
+    elements.scanStatus.textContent = "Scan complete. Move to Action mode when ready.";
+  }
+  if (elements.scanView) {
+    elements.scanView.classList.remove("active");
+    elements.scanView.textContent = "Scan finished. Great work.";
+  }
   state.metrics.totalScans += 1;
   bumpDaily(today(), "scans", 1);
   scanSession = null;
