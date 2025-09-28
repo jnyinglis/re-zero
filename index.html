@@ -31,7 +31,7 @@
 
       <section class="content">
         <div id="listMode" class="mode-panel">
-          <div id="guideLanding" class="guide-landing hidden">
+          <div id="guideWelcomePage" class="guide-landing hidden">
             <h2>Welcome to Guide Mode</h2>
             <p class="guide-intro">
               We will walk you through the Resistance Zero cycle. Capture everything, scan for what feels effortless, act, tidy
@@ -44,7 +44,7 @@
               <li><strong>Maintenance</strong> – delete or archive what now feels complete or irrelevant.</li>
               <li><strong>Reflection</strong> – notice progress and patterns before beginning another cycle.</li>
             </ol>
-            <button id="guideStartButton" class="guide-start-btn">Start Guided Session</button>
+            <button id="startListBuilding" class="guide-start-btn">Start List Building</button>
           </div>
 
           <div id="listBuilderContent" class="list-builder">
@@ -87,61 +87,121 @@
         </div>
 
         <div id="scanMode" class="mode-panel hidden">
-          <div id="scanStart" class="scan-start">
-            <div class="scan-instructions">
-              <h2>Ready to scan?</h2>
-              <p>Go through each task quickly and dot what feels effortless.</p>
-            </div>
-            <button id="beginScanBtn" class="big-scan-button">Start Scanning</button>
+          <div id="scanLandingPage" class="guide-landing hidden">
+            <h2>Ready to Scan?</h2>
+            <p class="guide-intro">
+              Move through your list in one smooth pass. Dot anything that feels effortless so it can lead the next stage.
+            </p>
+            <ul class="guide-steps">
+              <li>Settle on a direction so every task gets a quick glance.</li>
+              <li>Tap dot when something lights up—skip anything that resists.</li>
+              <li>Keep momentum; you can always re-enter tasks that return later.</li>
+            </ul>
+            <button id="startScanningStage" class="guide-start-btn">Start Scanning</button>
           </div>
 
-          <div id="scanProgress" class="scan-progress hidden">
-            <div class="scan-header">
-              <span id="scanCounter">0 / 0</span>
-              <button id="finishScan" class="finish-scan-btn">Finish</button>
+          <div id="scanWorkspace" class="scan-workspace">
+            <div id="scanStart" class="scan-start">
+              <div class="scan-instructions">
+                <h2>Ready to scan?</h2>
+                <p>Go through each task quickly and dot what feels effortless.</p>
+              </div>
+              <button id="beginScanBtn" class="big-scan-button">Start Scanning</button>
             </div>
 
-            <div id="currentTask" class="current-task"></div>
+            <div id="scanProgress" class="scan-progress hidden">
+              <div class="scan-header">
+                <span id="scanCounter">0 / 0</span>
+                <button id="finishScan" class="finish-scan-btn">Finish</button>
+              </div>
 
-            <div class="scan-actions">
-              <button id="skipTask" class="scan-btn secondary">Skip</button>
-              <button id="dotTask" class="scan-btn primary">Dot</button>
-            </div>
+              <div id="currentTask" class="current-task"></div>
 
-            <div id="recentTasks" class="recent-tasks">
-              <div class="recent-header">Recent scans:</div>
-              <div id="recentTasksList" class="recent-tasks-list"></div>
+              <div class="scan-actions">
+                <button id="skipTask" class="scan-btn secondary">Skip</button>
+                <button id="dotTask" class="scan-btn primary">Dot</button>
+              </div>
+
+              <div id="recentTasks" class="recent-tasks">
+                <div class="recent-header">Recent scans:</div>
+                <div id="recentTasksList" class="recent-tasks-list"></div>
+              </div>
             </div>
           </div>
         </div>
 
         <div id="actionMode" class="mode-panel hidden">
-          <h2>Act on dotted tasks</h2>
-          <p class="mode-tip">Take a small step, log time if useful, then confirm what happened.</p>
-          <div id="actionList" class="task-list"></div>
+          <div id="actionLandingPage" class="guide-landing hidden">
+            <h2>Ready for Action</h2>
+            <p class="guide-intro">
+              Follow the dots you created. Small moves count—each touch lowers resistance and builds momentum.
+            </p>
+            <ul class="guide-steps">
+              <li>Pick a dotted task and take a light, obvious next step.</li>
+              <li>Log quick notes or time to capture what shifted.</li>
+              <li>Re-enter anything that still needs attention later.</li>
+            </ul>
+            <button id="startActionStage" class="guide-start-btn">Start Taking Action</button>
+          </div>
+
+          <div id="actionContent" class="action-content">
+            <h2>Act on dotted tasks</h2>
+            <p class="mode-tip">Take a small step, log time if useful, then confirm what happened.</p>
+            <div id="actionList" class="task-list"></div>
+          </div>
         </div>
 
         <div id="maintainMode" class="mode-panel hidden">
-          <h2>Maintenance</h2>
-          <p class="mode-tip">Delete what no longer belongs. Archived tasks stay visible in Reflection.</p>
-          <div id="maintenanceList" class="task-list"></div>
+          <div id="maintainLandingPage" class="guide-landing hidden">
+            <h2>Ready to Maintain</h2>
+            <p class="guide-intro">
+              Clear space so only what’s alive stays in view. This is where clutter melts away and clarity sticks.
+            </p>
+            <ul class="guide-steps">
+              <li>Scan for tasks that are done, irrelevant, or waiting on someone else.</li>
+              <li>Archive or delete to keep the list honest.</li>
+              <li>Re-enter recurring work when it’s time for another pass.</li>
+            </ul>
+            <button id="startMaintenanceStage" class="guide-start-btn">Start Maintenance</button>
+          </div>
+
+          <div id="maintainContent" class="maintain-content">
+            <h2>Maintenance</h2>
+            <p class="mode-tip">Delete what no longer belongs. Archived tasks stay visible in Reflection.</p>
+            <div id="maintenanceList" class="task-list"></div>
+          </div>
         </div>
 
         <div id="reflectMode" class="mode-panel hidden">
-          <h2>Reflection</h2>
-          <div class="reflection-insights">
-            <div class="insight" id="insightScans">Scans today: 0</div>
-            <div class="insight" id="insightDots">Tasks dotted today: 0</div>
-            <div class="insight" id="insightMinutes">Minutes logged: 0</div>
+          <div id="reflectLandingPage" class="guide-landing hidden">
+            <h2>Ready to Reflect</h2>
+            <p class="guide-intro">
+              Take a breath and notice what shifted. Reflection locks in momentum and points you toward the next cycle.
+            </p>
+            <ul class="guide-steps">
+              <li>Celebrate touch counts and dotted wins.</li>
+              <li>Look for patterns in what moved easily.</li>
+              <li>Note any insights you want to carry forward.</li>
+            </ul>
+            <button id="startReflectionStage" class="guide-start-btn">Start Reflection</button>
           </div>
-          <div class="reflection-lists">
-            <div>
-              <h3>Completed</h3>
-              <ul id="completedList"></ul>
+
+          <div id="reflectContent" class="reflect-content">
+            <h2>Reflection</h2>
+            <div class="reflection-insights">
+              <div class="insight" id="insightScans">Scans today: 0</div>
+              <div class="insight" id="insightDots">Tasks dotted today: 0</div>
+              <div class="insight" id="insightMinutes">Minutes logged: 0</div>
             </div>
-            <div>
-              <h3>Archived</h3>
-              <ul id="archivedList"></ul>
+            <div class="reflection-lists">
+              <div>
+                <h3>Completed</h3>
+                <ul id="completedList"></ul>
+              </div>
+              <div>
+                <h3>Archived</h3>
+                <ul id="archivedList"></ul>
+              </div>
             </div>
           </div>
         </div>
