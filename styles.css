@@ -145,11 +145,11 @@ body {
 }
 
 .mode-panel.hidden {
-  display: none;
+  display: none !important;
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .list-builder {

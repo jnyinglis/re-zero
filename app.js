@@ -214,12 +214,7 @@ document.getElementById("finishScan")?.addEventListener("click", () => {
   finishNewScan();
 });
 
-if (elements.settings.guideMode) {
-  elements.settings.guideMode.checked = state.settings.guideMode;
-  elements.settings.guideMode.addEventListener("change", (event) => {
-    toggleGuideMode(event.target.checked);
-  });
-}
+// Settings panel removed - guide mode is always enabled
 
 // Quick add functionality
 document.getElementById("quickAddBtn").addEventListener("click", () => {
@@ -289,15 +284,7 @@ elements.scanDirectionButtons.forEach((btn) => {
   });
 });
 
-if (elements.settings.scanDirection) {
-  elements.settings.scanDirection.value = state.settings.scanDirection;
-  elements.settings.scanDirection.addEventListener("change", (event) => {
-    state.settings.scanDirection = event.target.value;
-    saveState();
-    highlightScanDirection();
-    render();
-  });
-}
+// Settings panel removed - scanDirection is handled internally
 
 // Simplified scanning event listeners
 document.getElementById("beginScanBtn")?.addEventListener("click", () => {
@@ -982,12 +969,7 @@ function renderReflection() {
 }
 
 function renderSettingsPanel() {
-  if (elements.settings.scanDirection) {
-    elements.settings.scanDirection.value = state.settings.scanDirection;
-  }
-  if (elements.settings.guideMode) {
-    elements.settings.guideMode.checked = state.settings.guideMode;
-  }
+  // Settings panel removed - no longer needed
 }
 
 function buildTaskCard(task, options = {}) {
@@ -1613,9 +1595,12 @@ function showCurrentStep() {
     elements.introPage.classList.add("hidden");
   }
 
-  // Show mode section
+  // Show mode section and guide controls
   if (elements.modeSection) {
     elements.modeSection.classList.remove("hidden");
+  }
+  if (elements.guide.controls) {
+    elements.guide.controls.classList.remove("hidden");
   }
 
   // Hide all panels
@@ -1693,6 +1678,9 @@ function moveToPrevStep() {
       if (elements.modeSection) {
         elements.modeSection.classList.add("hidden");
       }
+      if (elements.guide.controls) {
+        elements.guide.controls.classList.add("hidden");
+      }
       Object.values(elements.panels).forEach(panel => {
         if (panel) panel.classList.add("hidden");
       });
@@ -1712,12 +1700,15 @@ function moveToPrevStep() {
 if (state.guide.started) {
   showCurrentStep();
 } else {
-  // Show intro page
+  // Show intro page and hide all guide elements
   if (elements.introPage) {
     elements.introPage.classList.remove("hidden");
   }
   if (elements.modeSection) {
     elements.modeSection.classList.add("hidden");
+  }
+  if (elements.guide.controls) {
+    elements.guide.controls.classList.add("hidden");
   }
   Object.values(elements.panels).forEach(panel => {
     if (panel) panel.classList.add("hidden");
