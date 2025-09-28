@@ -1195,6 +1195,20 @@ body {
   background: color-mix(in srgb, var(--primary) 90%, black);
 }
 
+.guide-nav-btn.disabled,
+.guide-nav-btn:disabled {
+  background: var(--muted);
+  color: #ffffff80;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.guide-nav-btn.disabled:hover,
+.guide-nav-btn:disabled:hover {
+  background: var(--muted);
+  transform: none;
+}
+
 .guide-progress {
   font-weight: 600;
   color: var(--text);

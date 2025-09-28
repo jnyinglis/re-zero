@@ -1395,6 +1395,7 @@ function finishNewScan() {
   scanSession = null;
   saveState();
   render();
+  updateGuideControls(); // Update button from "Cancel" back to "Next Step"
 }
 
 // Task splitting and project functions
@@ -1621,7 +1622,9 @@ function updateGuideControls() {
   const step = guideFlow[state.guide.activeIndex];
   if (!step) return;
 
-  const stepNumber = Math.floor((state.guide.activeIndex + 1) / 2) + 1;
+  // Fix step numbering: instructions and action for same step should have same number
+  // Index 1,2 = Step 1; Index 3,4 = Step 2; etc.
+  const stepNumber = Math.floor((state.guide.activeIndex - 1) / 2) + 1;
   const isInstructionStep = step.mode.includes("Instructions");
 
   // Update progress label
@@ -1640,16 +1643,76 @@ function updateGuideControls() {
     }
   }
 
+  // Update next button text and visibility
   if (elements.guide.next) {
+    // Remove any existing disabled state
+    elements.guide.next.disabled = false;
+    elements.guide.next.classList.remove("disabled");
+
     if (state.guide.activeIndex === guideFlow.length - 1) {
       elements.guide.next.textContent = "Start New Cycle";
+      elements.guide.next.style.display = "inline-block";
     } else {
-      elements.guide.next.textContent = isInstructionStep ? "Start Step" : "Next Step";
+      if (isInstructionStep) {
+        // Hide the next button on instruction steps since user should use the step-specific button
+        elements.guide.next.style.display = "none";
+      } else {
+        // Check if we're in scan mode and actively scanning
+        if (step.mode === "scan" && scanSession) {
+          elements.guide.next.textContent = "Cancel";
+          elements.guide.next.style.display = "inline-block";
+          // Add a data attribute to track that this is a cancel button
+          elements.guide.next.dataset.action = "cancel-scan";
+        } else {
+          elements.guide.next.textContent = "Next Step";
+          elements.guide.next.style.display = "inline-block";
+          // Remove cancel action data attribute
+          delete elements.guide.next.dataset.action;
+        }
+      }
     }
   }
 }
 
 function moveToNextStep() {
+  // Check if this is a cancel action during scanning
+  if (elements.guide.next && elements.guide.next.dataset.action === "cancel-scan") {
+    // Cancel the scanning session
+    scanSession = null;
+
+    // Reset the scan UI
+    const scanProgress = document.getElementById("scanProgress");
+    const scanStart = document.getElementById("scanStart");
+    if (scanProgress) scanProgress.classList.add("hidden");
+    if (scanStart) {
+      scanStart.style.display = "flex";
+      scanStart.innerHTML = `
+        <div class="scan-instructions">
+          <h2>Ready to scan?</h2>
+          <p>Go through each task quickly and dot what feels effortless.</p>
+        </div>
+        <button id="beginScanBtn" class="big-scan-button">Begin</button>
+      `;
+
+      // Re-attach event listener
+      const newBtn = document.getElementById("beginScanBtn");
+      if (newBtn) {
+        newBtn.addEventListener("click", () => {
+          if (!state.tasks.some((t) => t.status === "active")) {
+            alert("Add tasks in List Building mode to start scanning.");
+            return;
+          }
+          startSimplifiedScan();
+        });
+      }
+    }
+
+    // Update the controls to show "Next Step" again
+    updateGuideControls();
+    return;
+  }
+
+  // Normal next step logic
   if (state.guide.activeIndex < guideFlow.length - 1) {
     state.guide.activeIndex++;
   } else {
