@@ -240,6 +240,7 @@ function createTask({ text, resistance, level, notes, parentId = null }) {
     level,
     notes,
     dotted: false,
+    lastDottedOn: null,
     status: "active",
     createdAt: now,
     updatedAt: now,
@@ -416,11 +417,14 @@ function advanceScan() {
 function toggleDot(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return;
-  task.dotted = !task.dotted;
+  const wasDotted = task.dotted;
+  if (wasDotted) {
+    clearTaskDot(task);
+  } else {
+    markTaskDotted(task);
+  }
   task.updatedAt = Date.now();
-  if (task.dotted) {
-    task.dottedCount += 1;
-    bumpDaily(today(), "dots", 1);
+  if (!wasDotted) {
     elements.scanStatus.textContent = "Nice! Dotting marks the effortless tasks.";
   } else {
     elements.scanStatus.textContent = "Dot removed. Keep scanning.";
@@ -637,9 +641,9 @@ function progressTask(taskId) {
   if (index === -1) return;
   if (isTimerRunning(taskId)) stopTimer();
   const [task] = state.tasks.splice(index, 1);
+  clearTaskDot(task);
   task.reentries += 1;
   task.updatedAt = Date.now();
-  task.dotted = false;
   state.tasks.push(task);
   saveState();
   render();
@@ -649,8 +653,8 @@ function completeTask(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return;
   if (isTimerRunning(taskId)) stopTimer();
+  clearTaskDot(task);
   task.status = "completed";
-  task.dotted = false;
   task.completedAt = Date.now();
   task.updatedAt = Date.now();
   saveState();
@@ -661,8 +665,8 @@ function archiveTask(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return;
   if (isTimerRunning(taskId)) stopTimer();
+  clearTaskDot(task);
   task.status = "archived";
-  task.dotted = false;
   task.archivedAt = Date.now();
   task.updatedAt = Date.now();
   saveState();
@@ -686,9 +690,10 @@ function bumpDaily(day, key, increment) {
   if (!state.daily[day]) {
     state.daily[day] = { scans: 0, dots: 0, minutes: 0 };
   }
-  state.daily[day][key] += increment;
+  const updatedValue = state.daily[day][key] + increment;
+  state.daily[day][key] = key === "dots" ? Math.max(0, updatedValue) : updatedValue;
   if (key === "dots") {
-    state.metrics.dottedToday += increment;
+    state.metrics.dottedToday = Math.max(0, state.metrics.dottedToday + increment);
   }
   saveState();
 }
@@ -702,7 +707,12 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return clone(defaultState);
     const parsed = JSON.parse(raw);
-    return { ...clone(defaultState), ...parsed, tasks: parsed.tasks || [], daily: parsed.daily || {} };
+    const tasks = (parsed.tasks || []).map((task) => ({
+      lastDottedOn: null,
+      ...task,
+      lastDottedOn: task.lastDottedOn || null,
+    }));
+    return { ...clone(defaultState), ...parsed, tasks, daily: parsed.daily || {} };
   } catch (error) {
     console.warn("Unable to load saved data", error);
     return clone(defaultState);
@@ -823,6 +833,27 @@ function renderRecentTasks() {
   });
 }
 
+function markTaskDotted(task) {
+  if (!task || task.dotted) return;
+
+  task.dotted = true;
+  task.lastDottedOn = today();
+  task.dottedCount = (task.dottedCount || 0) + 1;
+  bumpDaily(task.lastDottedOn, "dots", 1);
+}
+
+function clearTaskDot(task) {
+  if (!task || !task.dotted) return;
+
+  const dottedDay = task.lastDottedOn;
+  task.dotted = false;
+  task.lastDottedOn = null;
+
+  if (dottedDay === today()) {
+    bumpDaily(today(), "dots", -1);
+  }
+}
+
 function advanceNewScan(shouldDot) {
   const currentTaskId = scanSession.order[scanSession.index];
   const currentTask = state.tasks.find((t) => t.id === currentTaskId);
@@ -834,9 +865,7 @@ function advanceNewScan(shouldDot) {
     currentTask.updatedAt = Date.now();
 
     if (shouldDot) {
-      currentTask.dotted = true;
-      currentTask.dottedCount += 1;
-      bumpDaily(today(), "dots", 1);
+      markTaskDotted(currentTask);
     }
 
     if (typeof currentTask.resistance === "number" && currentTask.resistance > 0) {
@@ -856,16 +885,14 @@ function toggleTaskDot(taskId) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
 
-  task.dotted = !task.dotted;
-  task.updatedAt = Date.now();
-
-  if (task.dotted) {
-    task.dottedCount += 1;
-    bumpDaily(today(), "dots", 1);
+  const wasDotted = task.dotted;
+  if (wasDotted) {
+    clearTaskDot(task);
   } else {
-    bumpDaily(today(), "dots", -1);
+    markTaskDotted(task);
   }
 
+  task.updatedAt = Date.now();
   saveState();
 
   // Only re-render recent tasks if we're in an active scan
