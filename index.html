@@ -25,50 +25,80 @@
 
       <section class="content">
         <div id="listMode" class="mode-panel">
-          <h2>Capture tasks with zero friction</h2>
-          <form id="taskForm" class="task-form">
+          <div class="quick-add">
+            <input type="text" id="taskText" placeholder="Add a task..." class="quick-task-input" />
+            <button type="button" id="quickAddBtn" class="quick-add-btn">+</button>
+          </div>
+
+          <div class="task-list-view">
+            <ul id="listPreview" class="task-list-items"></ul>
+          </div>
+
+          <div class="scan-direction-setting">
             <label>
-              Task
-              <input type="text" id="taskText" required placeholder="Write the next thing on your mind" />
-            </label>
-            <label>
-              Resistance (0-10)
-              <input type="number" id="taskResistance" min="0" max="10" />
-            </label>
-            <label>
-              Level
-              <select id="taskLevel">
-                <option value="unspecified">Unspecified</option>
-                <option value="project">Project</option>
-                <option value="step">Step</option>
-                <option value="meta">Meta</option>
+              Scan Direction
+              <select id="scanDirectionSelect">
+                <option value="forward">Forward (first to last)</option>
+                <option value="backward">Backward (last to first)</option>
               </select>
             </label>
-            <label>
-              Notes
-              <textarea id="taskNotes" rows="2" placeholder="Optional context or links"></textarea>
-            </label>
-            <button type="submit">Add Task</button>
-          </form>
+          </div>
 
-          <div class="list-preview">
-            <h3>Current List</h3>
-            <ul id="listPreview"></ul>
+          <div id="expandedForm" class="expanded-form hidden">
+            <form id="taskForm" class="task-form-compact">
+              <input type="hidden" id="pendingTaskText" />
+              <label>
+                Resistance (0-10)
+                <input type="number" id="taskResistance" min="0" max="10" />
+              </label>
+              <label>
+                Level
+                <select id="taskLevel">
+                  <option value="unspecified">Unspecified</option>
+                  <option value="project">Project</option>
+                  <option value="step">Step</option>
+                  <option value="meta">Meta</option>
+                </select>
+              </label>
+              <label>
+                Notes
+                <textarea id="taskNotes" rows="2" placeholder="Optional context or links"></textarea>
+              </label>
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <button type="button" id="cancelForm" class="cancel-btn">Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
 
         <div id="scanMode" class="mode-panel hidden">
-          <h2>Scan the entire list in one direction</h2>
-          <div class="scan-controls">
-            <div>
-              Scan Direction:
-              <button type="button" data-direction="forward" class="scan-direction">Forward</button>
-              <button type="button" data-direction="backward" class="scan-direction">Backward</button>
+          <div id="scanStart" class="scan-start">
+            <div class="scan-instructions">
+              <h2>Ready to scan?</h2>
+              <p>Go through each task quickly and dot what feels effortless.</p>
             </div>
-            <button type="button" id="startScan">Start Scan</button>
-            <div id="scanStatus"></div>
+            <button id="beginScanBtn" class="big-scan-button">Start Scanning</button>
           </div>
-          <div class="scan-view" id="scanView"></div>
+
+          <div id="scanProgress" class="scan-progress hidden">
+            <div class="scan-header">
+              <span id="scanCounter">0 / 0</span>
+              <button id="finishScan" class="finish-scan-btn">Finish</button>
+            </div>
+
+            <div id="currentTask" class="current-task"></div>
+
+            <div class="scan-actions">
+              <button id="skipTask" class="scan-btn secondary">Skip</button>
+              <button id="dotTask" class="scan-btn primary">Dot</button>
+            </div>
+
+            <div id="recentTasks" class="recent-tasks">
+              <div class="recent-header">Recent scans:</div>
+              <div id="recentTasksList" class="recent-tasks-list"></div>
+            </div>
+          </div>
         </div>
 
         <div id="actionMode" class="mode-panel hidden">

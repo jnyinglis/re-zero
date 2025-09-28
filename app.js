@@ -100,9 +100,44 @@ elements.modeButtons.forEach((button) => {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 });
 
+// Quick add functionality
+document.getElementById("quickAddBtn").addEventListener("click", () => {
+  const text = elements.taskText.value.trim();
+  if (!text) return;
+
+  // Check if user wants to add more details
+  if (text.includes("!") || text.includes("#")) {
+    // Show expanded form for detailed entry
+    document.getElementById("pendingTaskText").value = text;
+    document.getElementById("expandedForm").classList.remove("hidden");
+    elements.taskText.value = "";
+  } else {
+    // Quick add with defaults
+    const task = createTask({
+      text,
+      resistance: null,
+      level: "unspecified",
+      notes: "",
+    });
+    state.tasks.push(task);
+    saveState();
+    elements.taskText.value = "";
+    elements.taskText.focus();
+    render();
+  }
+});
+
+// Handle Enter key in quick add
+elements.taskText.addEventListener("keypress", (event) => {
+  if (event.key === "Enter") {
+    document.getElementById("quickAddBtn").click();
+  }
+});
+
+// Expanded form submission
 elements.taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const text = elements.taskText.value.trim();
+  const text = document.getElementById("pendingTaskText").value.trim();
   if (!text) return;
   const task = createTask({
     text,
@@ -113,8 +148,16 @@ elements.taskForm.addEventListener("submit", (event) => {
   state.tasks.push(task);
   saveState();
   elements.taskForm.reset();
+  document.getElementById("expandedForm").classList.add("hidden");
   elements.taskText.focus();
   render();
+});
+
+// Cancel expanded form
+document.getElementById("cancelForm").addEventListener("click", () => {
+  document.getElementById("expandedForm").classList.add("hidden");
+  elements.taskForm.reset();
+  elements.taskText.focus();
 });
 
 elements.scanDirectionButtons.forEach((btn) => {
@@ -125,12 +168,23 @@ elements.scanDirectionButtons.forEach((btn) => {
   });
 });
 
-elements.startScan.addEventListener("click", () => {
+// Simplified scanning event listeners
+document.getElementById("beginScanBtn")?.addEventListener("click", () => {
   if (!state.tasks.some((t) => t.status === "active")) {
-    elements.scanStatus.textContent = "Add tasks in List Building mode to start scanning.";
+    alert("Add tasks in List Building mode to start scanning.");
     return;
   }
-  beginScan();
+  startSimplifiedScan();
+});
+
+document.getElementById("skipTask")?.addEventListener("click", () => advanceNewScan(false));
+document.getElementById("dotTask")?.addEventListener("click", () => advanceNewScan(true));
+document.getElementById("finishScan")?.addEventListener("click", () => finishNewScan());
+
+// Scan direction setting
+document.getElementById("scanDirectionSelect")?.addEventListener("change", (e) => {
+  state.settings.scanDirection = e.target.value;
+  saveState();
 });
 
 function setMode(mode) {
@@ -141,6 +195,23 @@ function setMode(mode) {
   Object.entries(elements.panels).forEach(([key, panel]) => {
     panel.classList.toggle("hidden", key !== mode);
   });
+
+  // Show scan start screen when entering scan mode
+  if (mode === "scan") {
+    const scanStart = document.getElementById("scanStart");
+    const scanProgress = document.getElementById("scanProgress");
+    if (scanStart) scanStart.style.display = "flex";
+    if (scanProgress) scanProgress.classList.add("hidden");
+  }
+
+  // Update scan direction dropdown
+  if (mode === "list") {
+    const scanDirectionSelect = document.getElementById("scanDirectionSelect");
+    if (scanDirectionSelect) {
+      scanDirectionSelect.value = state.settings.scanDirection;
+    }
+  }
+
   updateGuidance();
   render();
 }
@@ -160,7 +231,7 @@ function highlightScanDirection() {
   });
 }
 
-function createTask({ text, resistance, level, notes }) {
+function createTask({ text, resistance, level, notes, parentId = null }) {
   const now = Date.now();
   return {
     id: randomId(),
@@ -179,6 +250,8 @@ function createTask({ text, resistance, level, notes }) {
     completedAt: null,
     archivedAt: null,
     timeLogs: [],
+    parentId, // Link to parent project
+    subtasks: [], // Array of linked subtask IDs
   };
 }
 
@@ -201,7 +274,38 @@ function renderListPreview() {
     .filter((task) => task.status === "active")
     .forEach((task) => {
       const item = document.createElement("li");
-      item.textContent = `${task.text}${task.dotted ? " • dotted" : ""}`;
+
+      // Add visual cues for project relationships
+      let prefix = "";
+      let badges = "";
+
+      if (task.parentId) {
+        prefix = "⤷ "; // Subtask arrow
+        item.classList.add("subtask");
+      }
+
+      if (task.level === "project" || (task.subtasks && task.subtasks.length > 0)) {
+        badges += " 🔹";
+        item.classList.add("project");
+      } else if (task.level === "step") {
+        badges += " 🔸";
+      } else if (task.level === "meta") {
+        badges += " 💭";
+      }
+
+      const dottedText = task.dotted ? " • dotted" : "";
+      item.innerHTML = `
+        <span class="task-content">
+          ${prefix}${task.text}${badges}${dottedText}
+        </span>
+      `;
+
+      // Add click handler for projects to show rollup
+      if (task.level === "project" || (task.subtasks && task.subtasks.length > 0)) {
+        item.style.cursor = "pointer";
+        item.addEventListener("click", () => showProjectRollup(task.id));
+      }
+
       elements.listPreview.appendChild(item);
     });
 }
@@ -352,6 +456,10 @@ function renderActionList() {
         {
           label: task.dotted ? "Clear Dot" : "Dot",
           onClick: () => toggleDot(task.id),
+        },
+        {
+          label: "Split Task",
+          onClick: () => showSplitDialog(task.id),
         },
         {
           label: "Progress Made",
@@ -620,5 +728,367 @@ window.addEventListener("beforeunload", () => {
   stopTimer();
   saveState();
 });
+
+// Simplified scanning function
+function startSimplifiedScan() {
+  const scanStart = document.getElementById("scanStart");
+  if (scanStart) {
+    scanStart.style.display = "none";
+  }
+  beginNewScan();
+}
+
+// New improved scanning functions
+function beginNewScan() {
+  const tasks = getActiveTasks();
+  const ordered = state.settings.scanDirection === "forward" ? tasks : [...tasks].reverse();
+  scanSession = {
+    order: ordered.map((task) => task.id),
+    index: 0,
+    startedAt: Date.now(),
+    recentTasks: [] // Track last few scanned tasks
+  };
+
+  const scanProgress = document.getElementById("scanProgress");
+  if (scanProgress) {
+    scanProgress.classList.remove("hidden");
+  }
+  renderNewScanView();
+}
+
+function renderNewScanView() {
+  if (!scanSession || scanSession.index >= scanSession.order.length) {
+    finishNewScan();
+    return;
+  }
+
+  const currentTaskId = scanSession.order[scanSession.index];
+  const currentTask = state.tasks.find((t) => t.id === currentTaskId);
+
+  if (!currentTask || currentTask.status !== "active") {
+    scanSession.index += 1;
+    renderNewScanView();
+    return;
+  }
+
+  // Update counter
+  document.getElementById("scanCounter").textContent =
+    `${scanSession.index + 1} / ${scanSession.order.length}`;
+
+  // Render current task
+  const currentTaskEl = document.getElementById("currentTask");
+  currentTaskEl.innerHTML = `
+    <h3>${currentTask.text}</h3>
+    <div class="task-meta">
+      ${currentTask.level && currentTask.level !== "unspecified" ? `${currentTask.level} • ` : ""}
+      ${typeof currentTask.resistance === "number" ? `Resistance: ${currentTask.resistance}` : ""}
+    </div>
+  `;
+
+  // Render recent tasks (last 3-4)
+  renderRecentTasks();
+}
+
+function renderRecentTasks() {
+  const recentTasksList = document.getElementById("recentTasksList");
+  recentTasksList.innerHTML = "";
+
+  if (!scanSession || !scanSession.recentTasks) return;
+
+  const recentTasks = scanSession.recentTasks.slice(-4); // Show last 4
+
+  recentTasks.forEach(taskId => {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const item = document.createElement("div");
+    item.className = `recent-task-item ${task.dotted ? "dotted" : ""}`;
+
+    item.innerHTML = `
+      <span class="recent-task-text">${task.text}</span>
+      <button class="recent-task-toggle ${task.dotted ? "dotted" : ""}"
+              data-task-id="${task.id}">
+        ${task.dotted ? "Dotted" : "Undotted"}
+      </button>
+    `;
+
+    // Add click handler for toggle
+    const toggleBtn = item.querySelector(".recent-task-toggle");
+    toggleBtn.addEventListener("click", () => {
+      toggleTaskDot(task.id);
+      renderRecentTasks(); // Re-render to update state
+    });
+
+    recentTasksList.appendChild(item);
+  });
+}
+
+function advanceNewScan(shouldDot) {
+  const currentTaskId = scanSession.order[scanSession.index];
+  const currentTask = state.tasks.find((t) => t.id === currentTaskId);
+
+  if (currentTask) {
+    // Update task state
+    currentTask.touches += 1;
+    currentTask.scanCount += 1;
+    currentTask.updatedAt = Date.now();
+
+    if (shouldDot) {
+      currentTask.dotted = true;
+      currentTask.dottedCount += 1;
+      bumpDaily(today(), "dots", 1);
+    }
+
+    if (typeof currentTask.resistance === "number" && currentTask.resistance > 0) {
+      currentTask.resistance = Math.max(0, currentTask.resistance - 1);
+    }
+
+    // Add to recent tasks
+    scanSession.recentTasks.push(currentTaskId);
+  }
+
+  scanSession.index += 1;
+  saveState();
+  renderNewScanView();
+}
+
+function toggleTaskDot(taskId) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  task.dotted = !task.dotted;
+  task.updatedAt = Date.now();
+
+  if (task.dotted) {
+    task.dottedCount += 1;
+    bumpDaily(today(), "dots", 1);
+  } else {
+    bumpDaily(today(), "dots", -1);
+  }
+
+  saveState();
+
+  // Only re-render recent tasks if we're in an active scan
+  if (scanSession && scanSession.recentTasks) {
+    renderRecentTasks();
+  }
+  render();
+}
+
+function finishNewScan() {
+  const scanProgress = document.getElementById("scanProgress");
+  const scanStart = document.getElementById("scanStart");
+
+  if (scanProgress) scanProgress.classList.add("hidden");
+  if (scanStart) {
+    scanStart.style.display = "flex";
+    scanStart.innerHTML = `
+      <div class="scan-instructions">
+        <h2>Scan complete!</h2>
+        <p>Great work! Move to Action mode to work on dotted tasks.</p>
+      </div>
+      <button id="beginScanBtn" class="big-scan-button">Scan Again</button>
+    `;
+
+    // Re-attach event listener
+    const newBtn = document.getElementById("beginScanBtn");
+    if (newBtn) {
+      newBtn.addEventListener("click", () => {
+        if (!state.tasks.some((t) => t.status === "active")) {
+          alert("Add tasks in List Building mode to start scanning.");
+          return;
+        }
+        startSimplifiedScan();
+      });
+    }
+  }
+
+  state.metrics.totalScans += 1;
+  bumpDaily(today(), "scans", 1);
+  scanSession = null;
+  saveState();
+  render();
+}
+
+// Task splitting and project functions
+function showSplitDialog(taskId) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const dialog = document.createElement("div");
+  dialog.className = "split-dialog";
+  dialog.innerHTML = `
+    <div class="split-dialog-content">
+      <h3>Split "${task.text}" into smaller tasks</h3>
+      <p>The original task will become a project. Add subtasks below:</p>
+
+      <div class="subtask-list" id="subtaskList">
+        <input type="text" class="subtask-input" placeholder="First subtask..." />
+        <input type="text" class="subtask-input" placeholder="Second subtask..." />
+      </div>
+
+      <button type="button" id="addSubtaskInput">+ Add another subtask</button>
+
+      <div class="dialog-actions">
+        <button type="button" class="dialog-secondary" id="cancelSplit">Cancel</button>
+        <button type="button" class="dialog-primary" id="confirmSplit">Split Task</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  // Event listeners
+  document.getElementById("addSubtaskInput").addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "subtask-input";
+    input.placeholder = "Another subtask...";
+    document.getElementById("subtaskList").appendChild(input);
+  });
+
+  document.getElementById("cancelSplit").addEventListener("click", () => {
+    document.body.removeChild(dialog);
+  });
+
+  document.getElementById("confirmSplit").addEventListener("click", () => {
+    const inputs = dialog.querySelectorAll(".subtask-input");
+    const subtasks = Array.from(inputs)
+      .map(input => input.value.trim())
+      .filter(text => text.length > 0);
+
+    if (subtasks.length > 0) {
+      splitTask(taskId, subtasks);
+    }
+    document.body.removeChild(dialog);
+  });
+}
+
+function splitTask(parentTaskId, subtaskTexts) {
+  const parentTask = state.tasks.find(t => t.id === parentTaskId);
+  if (!parentTask) return;
+
+  // Convert parent to project
+  parentTask.level = "project";
+  parentTask.updatedAt = Date.now();
+
+  // Find parent task index to insert subtasks after it
+  const parentIndex = state.tasks.findIndex(t => t.id === parentTaskId);
+
+  // Create subtasks
+  const newSubtasks = subtaskTexts.map(text => {
+    const subtask = createTask({
+      text,
+      resistance: null,
+      level: "step",
+      notes: "",
+      parentId: parentTaskId
+    });
+    return subtask;
+  });
+
+  // Insert subtasks right after parent in the list
+  state.tasks.splice(parentIndex + 1, 0, ...newSubtasks);
+
+  // Link subtasks to parent
+  parentTask.subtasks = newSubtasks.map(st => st.id);
+
+  saveState();
+  render();
+}
+
+function showProjectRollup(projectId) {
+  const project = state.tasks.find(t => t.id === projectId);
+  if (!project) return;
+
+  const linkedSubtasks = state.tasks.filter(t => t.parentId === projectId);
+
+  // Calculate aggregated stats
+  const totalSubtasks = linkedSubtasks.length;
+  const completedSubtasks = linkedSubtasks.filter(t => t.status === "completed").length;
+  const totalTime = linkedSubtasks.reduce((acc, task) => {
+    return acc + task.timeLogs.reduce((sum, log) => sum + log.minutes, 0);
+  }, 0);
+
+  const dialog = document.createElement("div");
+  dialog.className = "project-rollup";
+  dialog.innerHTML = `
+    <div class="rollup-content">
+      <div class="rollup-header">
+        <h3>🔹 ${project.text}</h3>
+        <button type="button" id="closeRollup">✕</button>
+      </div>
+
+      <div class="rollup-stats">
+        <div class="rollup-stat">
+          <div class="rollup-stat-value">${totalSubtasks}</div>
+          <div class="rollup-stat-label">Total Subtasks</div>
+        </div>
+        <div class="rollup-stat">
+          <div class="rollup-stat-value">${completedSubtasks}</div>
+          <div class="rollup-stat-label">Completed</div>
+        </div>
+        <div class="rollup-stat">
+          <div class="rollup-stat-value">${totalTime.toFixed(1)}h</div>
+          <div class="rollup-stat-label">Time Logged</div>
+        </div>
+      </div>
+
+      <h4>Linked Subtasks:</h4>
+      <div class="subtask-list">
+        ${linkedSubtasks.map(task => `
+          <div class="subtask-item">
+            <span>⤷ ${task.text}</span>
+            <span class="task-status">${task.status === "completed" ? "✓" : task.dotted ? "•" : ""}</span>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="dialog-secondary" id="unlinkSubtasks">Unlink All</button>
+        <button type="button" class="dialog-primary" id="closeRollup2">Close</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  // Event listeners
+  document.getElementById("closeRollup").addEventListener("click", () => {
+    document.body.removeChild(dialog);
+  });
+
+  document.getElementById("closeRollup2").addEventListener("click", () => {
+    document.body.removeChild(dialog);
+  });
+
+  document.getElementById("unlinkSubtasks").addEventListener("click", () => {
+    unlinkSubtasks(projectId);
+    document.body.removeChild(dialog);
+  });
+}
+
+function unlinkSubtasks(projectId) {
+  const project = state.tasks.find(t => t.id === projectId);
+  if (!project) return;
+
+  // Remove parent links from subtasks
+  state.tasks.forEach(task => {
+    if (task.parentId === projectId) {
+      task.parentId = null;
+    }
+  });
+
+  // Clear subtask array from project
+  project.subtasks = [];
+
+  // If project has no more subtasks, convert back to regular task
+  if (project.level === "project") {
+    project.level = "unspecified";
+  }
+
+  saveState();
+  render();
+}
 
 setMode("list");
