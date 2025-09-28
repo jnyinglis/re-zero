@@ -9,7 +9,7 @@ const defaultState = {
   tasks: [],
   settings: {
     scanDirection: "forward",
-    guideMode: false,
+    guideMode: true,
   },
   metrics: {
     totalScans: 0,
@@ -32,16 +32,17 @@ if (typeof state.settings.guideMode !== "boolean") {
 }
 
 const guideFlow = [
-  { key: "welcome", mode: "list", label: "Welcome" },
-  { key: "list", mode: "list", label: "List Building" },
-  { key: "scanLanding", mode: "scan", label: "Scan Prep" },
-  { key: "scan", mode: "scan", label: "Scanning" },
-  { key: "actionLanding", mode: "action", label: "Action Prep" },
-  { key: "action", mode: "action", label: "Action" },
-  { key: "maintainLanding", mode: "maintain", label: "Maintenance Prep" },
-  { key: "maintain", mode: "maintain", label: "Maintenance" },
-  { key: "reflectLanding", mode: "reflect", label: "Reflection Prep" },
-  { key: "reflect", mode: "reflect", label: "Reflection" },
+  { key: "intro", mode: "intro", label: "Introduction" },
+  { key: "listInstructions", mode: "listInstructions", label: "List Building Instructions" },
+  { key: "listAction", mode: "list", label: "List Building" },
+  { key: "scanInstructions", mode: "scanInstructions", label: "Scanning Instructions" },
+  { key: "scanAction", mode: "scan", label: "Scanning" },
+  { key: "actionInstructions", mode: "actionInstructions", label: "Action Instructions" },
+  { key: "actionAction", mode: "action", label: "Action" },
+  { key: "maintainInstructions", mode: "maintainInstructions", label: "Maintenance Instructions" },
+  { key: "maintainAction", mode: "maintain", label: "Maintenance" },
+  { key: "reflectInstructions", mode: "reflectInstructions", label: "Reflection Instructions" },
+  { key: "reflectAction", mode: "reflect", label: "Reflection" },
 ];
 
 const guideStepIndexByKey = guideFlow.reduce((map, step, index) => {
@@ -107,14 +108,20 @@ const coachTips = [
 const elements = {
   guidanceBar: document.getElementById("guidanceBar"),
   coachTips: document.getElementById("coachTips"),
-  modeButtons: Array.from(document.querySelectorAll(".mode-button")),
+  introPage: document.getElementById("introPage"),
+  modeSection: document.getElementById("modeSection"),
+  startRezero: document.getElementById("startRezero"),
   panels: {
+    listInstructions: document.getElementById("listInstructions"),
     list: document.getElementById("listMode"),
+    scanInstructions: document.getElementById("scanInstructions"),
     scan: document.getElementById("scanMode"),
+    actionInstructions: document.getElementById("actionInstructions"),
     action: document.getElementById("actionMode"),
+    maintainInstructions: document.getElementById("maintainInstructions"),
     maintain: document.getElementById("maintainMode"),
+    reflectInstructions: document.getElementById("reflectInstructions"),
     reflect: document.getElementById("reflectMode"),
-    settings: document.getElementById("settingsMode"),
   },
   taskForm: document.getElementById("taskForm"),
   taskText: document.getElementById("taskText"),
@@ -140,64 +147,72 @@ const elements = {
     dots: document.getElementById("insightDots"),
     minutes: document.getElementById("insightMinutes"),
   },
-  settings: {
-    scanDirection: document.getElementById("settingsScanDirection"),
-    guideMode: document.getElementById("settingsGuideMode"),
-  },
   guide: {
     controls: document.getElementById("guideControls"),
     prev: document.getElementById("guidePrev"),
     next: document.getElementById("guideNext"),
     progress: document.getElementById("guideProgressLabel"),
-    welcome: document.getElementById("guideWelcomePage"),
-    builder: document.getElementById("listBuilderContent"),
     listStart: document.getElementById("startListBuilding"),
-    scanLanding: document.getElementById("scanLandingPage"),
-    scanWorkspace: document.getElementById("scanWorkspace"),
     scanAdvance: document.getElementById("startScanningStage"),
-    actionLanding: document.getElementById("actionLandingPage"),
-    actionContent: document.getElementById("actionContent"),
     actionAdvance: document.getElementById("startActionStage"),
-    maintainLanding: document.getElementById("maintainLandingPage"),
-    maintainContent: document.getElementById("maintainContent"),
     maintainAdvance: document.getElementById("startMaintenanceStage"),
-    reflectLanding: document.getElementById("reflectLandingPage"),
-    reflectContent: document.getElementById("reflectContent"),
     reflectAdvance: document.getElementById("startReflectionStage"),
   },
 };
 
-elements.modeButtons.forEach((button) => {
-  button.addEventListener("click", () => setMode(button.dataset.mode));
-});
+if (elements.startRezero) {
+  elements.startRezero.addEventListener("click", () => startResZeroFlow());
+}
 
 if (elements.guide.listStart) {
-  elements.guide.listStart.addEventListener("click", () => startGuideSession());
+  elements.guide.listStart.addEventListener("click", () => moveToNextStep());
 }
 
 if (elements.guide.scanAdvance) {
-  elements.guide.scanAdvance.addEventListener("click", () => moveToGuideStep("scan"));
+  elements.guide.scanAdvance.addEventListener("click", () => moveToNextStep());
 }
 
 if (elements.guide.actionAdvance) {
-  elements.guide.actionAdvance.addEventListener("click", () => moveToGuideStep("action"));
+  elements.guide.actionAdvance.addEventListener("click", () => moveToNextStep());
 }
 
 if (elements.guide.maintainAdvance) {
-  elements.guide.maintainAdvance.addEventListener("click", () => moveToGuideStep("maintain"));
+  elements.guide.maintainAdvance.addEventListener("click", () => moveToNextStep());
 }
 
 if (elements.guide.reflectAdvance) {
-  elements.guide.reflectAdvance.addEventListener("click", () => moveToGuideStep("reflect"));
+  elements.guide.reflectAdvance.addEventListener("click", () => moveToNextStep());
 }
 
 if (elements.guide.prev) {
-  elements.guide.prev.addEventListener("click", () => navigateGuide(-1));
+  elements.guide.prev.addEventListener("click", () => moveToPrevStep());
 }
 
 if (elements.guide.next) {
-  elements.guide.next.addEventListener("click", () => handleGuideNext());
+  elements.guide.next.addEventListener("click", () => moveToNextStep());
 }
+
+// Add event listener for scan button
+document.getElementById("beginScanBtn")?.addEventListener("click", () => {
+  if (!state.tasks.some((t) => t.status === "active")) {
+    alert("Add tasks in List Building mode to start scanning.");
+    return;
+  }
+  startSimplifiedScan();
+});
+
+// Add event listeners for scan controls
+document.getElementById("skipTask")?.addEventListener("click", () => {
+  advanceNewScan(false);
+});
+
+document.getElementById("dotTask")?.addEventListener("click", () => {
+  advanceNewScan(true);
+});
+
+document.getElementById("finishScan")?.addEventListener("click", () => {
+  finishNewScan();
+});
 
 if (elements.settings.guideMode) {
   elements.settings.guideMode.checked = state.settings.guideMode;
@@ -1581,4 +1596,130 @@ function unlinkSubtasks(projectId) {
   render();
 }
 
-setMode(currentMode);
+// New flow management functions
+function startResZeroFlow() {
+  state.guide.started = true;
+  state.guide.activeIndex = 1; // Start at first instruction step
+  saveState();
+  showCurrentStep();
+}
+
+function showCurrentStep() {
+  const step = guideFlow[state.guide.activeIndex];
+  if (!step) return;
+
+  // Hide intro page
+  if (elements.introPage) {
+    elements.introPage.classList.add("hidden");
+  }
+
+  // Show mode section
+  if (elements.modeSection) {
+    elements.modeSection.classList.remove("hidden");
+  }
+
+  // Hide all panels
+  Object.values(elements.panels).forEach(panel => {
+    if (panel) panel.classList.add("hidden");
+  });
+
+  // Show current panel
+  const targetPanel = elements.panels[step.mode];
+  if (targetPanel) {
+    targetPanel.classList.remove("hidden");
+  }
+
+  updateGuideControls();
+}
+
+function updateGuideControls() {
+  const step = guideFlow[state.guide.activeIndex];
+  if (!step) return;
+
+  const stepNumber = Math.floor((state.guide.activeIndex + 1) / 2) + 1;
+  const isInstructionStep = step.mode.includes("Instructions");
+
+  // Update progress label
+  if (elements.guide.progress) {
+    elements.guide.progress.textContent = `Step ${stepNumber} of 5`;
+  }
+
+  // Update button text
+  if (elements.guide.prev) {
+    if (isInstructionStep) {
+      elements.guide.prev.textContent = state.guide.activeIndex === 1 ? "Back to Intro" : "Previous Step";
+      elements.guide.prev.style.display = "inline-block";
+    } else {
+      elements.guide.prev.textContent = "Instructions";
+      elements.guide.prev.style.display = "inline-block";
+    }
+  }
+
+  if (elements.guide.next) {
+    if (state.guide.activeIndex === guideFlow.length - 1) {
+      elements.guide.next.textContent = "Start New Cycle";
+    } else {
+      elements.guide.next.textContent = isInstructionStep ? "Start Step" : "Next Step";
+    }
+  }
+}
+
+function moveToNextStep() {
+  if (state.guide.activeIndex < guideFlow.length - 1) {
+    state.guide.activeIndex++;
+  } else {
+    // Start new cycle
+    state.guide.activeIndex = 1; // Back to first instruction step (skip intro)
+  }
+  saveState();
+  showCurrentStep();
+}
+
+function moveToPrevStep() {
+  const step = guideFlow[state.guide.activeIndex];
+  const isInstructionStep = step?.mode.includes("Instructions");
+
+  if (isInstructionStep) {
+    // Go to previous step or intro
+    if (state.guide.activeIndex > 1) {
+      state.guide.activeIndex--;
+    } else {
+      // Go back to intro
+      state.guide.activeIndex = 0;
+      state.guide.started = false;
+      if (elements.introPage) {
+        elements.introPage.classList.remove("hidden");
+      }
+      if (elements.modeSection) {
+        elements.modeSection.classList.add("hidden");
+      }
+      Object.values(elements.panels).forEach(panel => {
+        if (panel) panel.classList.add("hidden");
+      });
+      saveState();
+      return;
+    }
+  } else {
+    // Go back to instructions for this step
+    state.guide.activeIndex--;
+  }
+
+  saveState();
+  showCurrentStep();
+}
+
+// Initialize the flow
+if (state.guide.started) {
+  showCurrentStep();
+} else {
+  // Show intro page
+  if (elements.introPage) {
+    elements.introPage.classList.remove("hidden");
+  }
+  if (elements.modeSection) {
+    elements.modeSection.classList.add("hidden");
+  }
+  Object.values(elements.panels).forEach(panel => {
+    if (panel) panel.classList.add("hidden");
+  });
+}

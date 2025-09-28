@@ -15,37 +15,57 @@
     </header>
 
     <main class="app">
-      <section class="modes">
-        <button class="mode-button" data-mode="list">List Building</button>
-        <button class="mode-button" data-mode="scan">Scanning</button>
-        <button class="mode-button" data-mode="action">Action</button>
-        <button class="mode-button" data-mode="maintain">Maintenance</button>
-        <button class="mode-button" data-mode="reflect">Reflection</button>
-        <button class="mode-button" data-mode="settings">Settings</button>
-        <div id="guideControls" class="guide-controls hidden">
-          <button id="guidePrev" class="guide-nav-btn">Previous</button>
-          <div id="guideProgressLabel" class="guide-progress"></div>
-          <button id="guideNext" class="guide-nav-btn primary">Next</button>
+      <!-- Intro Page -->
+      <section id="introPage" class="intro-page">
+        <div class="intro-content">
+          <h2>Welcome to Resistance Zero</h2>
+          <p class="intro-description">
+            Resistance Zero transforms procrastination into a navigation tool. Instead of fighting resistance,
+            we use it as guidance - scanning tasks until some feel effortless, then acting on those first.
+          </p>
+          <div class="process-overview">
+            <h3>The 5-Step Process:</h3>
+            <ol class="process-steps">
+              <li><strong>List Building</strong> – Capture everything into one flat list</li>
+              <li><strong>Scanning</strong> – Pass through quickly and dot zero-resistance tasks</li>
+              <li><strong>Action</strong> – Take small steps on dotted items</li>
+              <li><strong>Maintenance</strong> – Clear completed and irrelevant tasks</li>
+              <li><strong>Reflection</strong> – Notice progress and patterns</li>
+            </ol>
+          </div>
+          <button id="startRezero" class="start-rezero-btn">Start ResZero</button>
+        </div>
+      </section>
+
+      <section class="modes hidden" id="modeSection">
+        <div id="guideControls" class="guide-controls">
+          <button id="guidePrev" class="guide-nav-btn">Instructions</button>
+          <div id="guideProgressLabel" class="guide-progress">Step 1 of 5</div>
+          <button id="guideNext" class="guide-nav-btn primary">Next Step</button>
         </div>
       </section>
 
       <section class="content">
-        <div id="listMode" class="mode-panel">
-          <div id="guideWelcomePage" class="guide-landing hidden">
-            <h2>Welcome to Guide Mode</h2>
-            <p class="guide-intro">
-              We will walk you through the Resistance Zero cycle. Capture everything, scan for what feels effortless, act, tidy
-              up, and notice the wins.
-            </p>
-            <ol class="guide-steps">
-              <li><strong>List Building</strong> – empty your head into one flat list.</li>
-              <li><strong>Scanning</strong> – pass through quickly and dot the zero-resistance tasks.</li>
-              <li><strong>Action</strong> – take small moves on each dotted item and re-enter what remains.</li>
-              <li><strong>Maintenance</strong> – delete or archive what now feels complete or irrelevant.</li>
-              <li><strong>Reflection</strong> – notice progress and patterns before beginning another cycle.</li>
-            </ol>
-            <button id="startListBuilding" class="guide-start-btn">Start List Building</button>
+        <!-- Step Instructions Pages -->
+        <div id="listInstructions" class="instructions-panel hidden">
+          <h2>Step 1: List Building</h2>
+          <p class="step-intro">
+            Empty your head into one flat list. Capture everything that isn't tied to a calendar or specific time.
+            Don't worry about organization, priorities, or categories - just get it all out.
+          </p>
+          <div class="instruction-details">
+            <h3>What to do:</h3>
+            <ul>
+              <li>Add tasks quickly at any level (project, step, or meta-task)</li>
+              <li>Keep the list flat and uncategorized</li>
+              <li>Include everything that's on your mind</li>
+              <li>Don't worry about perfect wording</li>
+            </ul>
           </div>
+          <button id="startListBuilding" class="start-step-btn">Start List Building</button>
+        </div>
+
+        <div id="listMode" class="mode-panel hidden">
 
           <div id="listBuilderContent" class="list-builder">
             <div class="quick-add">
@@ -86,19 +106,26 @@
           </div>
         </div>
 
-        <div id="scanMode" class="mode-panel hidden">
-          <div id="scanLandingPage" class="guide-landing hidden">
-            <h2>Ready to Scan?</h2>
-            <p class="guide-intro">
-              Move through your list in one smooth pass. Dot anything that feels effortless so it can lead the next stage.
-            </p>
-            <ul class="guide-steps">
-              <li>Settle on a direction so every task gets a quick glance.</li>
-              <li>Tap dot when something lights up—skip anything that resists.</li>
-              <li>Keep momentum; you can always re-enter tasks that return later.</li>
+        <div id="scanInstructions" class="instructions-panel hidden">
+          <h2>Step 2: Scanning</h2>
+          <p class="step-intro">
+            Move through your list in one smooth pass. Dot anything that feels effortless - these will lead the next stage.
+            Trust your gut feeling about what has zero resistance.
+          </p>
+          <div class="instruction-details">
+            <h3>What to do:</h3>
+            <ul>
+              <li>Choose a direction (forward or backward) and stick with it</li>
+              <li>Pass through quickly - don't overthink</li>
+              <li>Dot tasks that feel effortless or exciting</li>
+              <li>Skip anything that creates resistance</li>
+              <li>Complete the full scan before moving on</li>
             </ul>
-            <button id="startScanningStage" class="guide-start-btn">Start Scanning</button>
           </div>
+          <button id="startScanningStage" class="start-step-btn">Start Scanning</button>
+        </div>
+
+        <div id="scanMode" class="mode-panel hidden">
 
           <div id="scanWorkspace" class="scan-workspace">
             <div id="scanStart" class="scan-start">
@@ -130,19 +157,26 @@
           </div>
         </div>
 
-        <div id="actionMode" class="mode-panel hidden">
-          <div id="actionLandingPage" class="guide-landing hidden">
-            <h2>Ready for Action</h2>
-            <p class="guide-intro">
-              Follow the dots you created. Small moves count—each touch lowers resistance and builds momentum.
-            </p>
-            <ul class="guide-steps">
-              <li>Pick a dotted task and take a light, obvious next step.</li>
-              <li>Log quick notes or time to capture what shifted.</li>
-              <li>Re-enter anything that still needs attention later.</li>
+        <div id="actionInstructions" class="instructions-panel hidden">
+          <h2>Step 3: Action</h2>
+          <p class="step-intro">
+            Follow the dots you created. Small moves count - each touch lowers resistance and builds momentum.
+            Focus on progress, not perfection.
+          </p>
+          <div class="instruction-details">
+            <h3>What to do:</h3>
+            <ul>
+              <li>Pick a dotted task and take a light, obvious next step</li>
+              <li>Work "little and often" - even 2 minutes counts</li>
+              <li>Log time if useful for productivity or billing</li>
+              <li>Re-enter incomplete tasks - they'll move to the end of the list</li>
+              <li>Celebrate small wins</li>
             </ul>
-            <button id="startActionStage" class="guide-start-btn">Start Taking Action</button>
           </div>
+          <button id="startActionStage" class="start-step-btn">Start Taking Action</button>
+        </div>
+
+        <div id="actionMode" class="mode-panel hidden">
 
           <div id="actionContent" class="action-content">
             <h2>Act on dotted tasks</h2>
@@ -151,19 +185,26 @@
           </div>
         </div>
 
-        <div id="maintainMode" class="mode-panel hidden">
-          <div id="maintainLandingPage" class="guide-landing hidden">
-            <h2>Ready to Maintain</h2>
-            <p class="guide-intro">
-              Clear space so only what’s alive stays in view. This is where clutter melts away and clarity sticks.
-            </p>
-            <ul class="guide-steps">
-              <li>Scan for tasks that are done, irrelevant, or waiting on someone else.</li>
-              <li>Archive or delete to keep the list honest.</li>
-              <li>Re-enter recurring work when it’s time for another pass.</li>
+        <div id="maintainInstructions" class="instructions-panel hidden">
+          <h2>Step 4: Maintenance</h2>
+          <p class="step-intro">
+            Clear space so only what's alive stays in view. This is where clutter melts away and clarity emerges.
+            Trust your intuition about what no longer belongs.
+          </p>
+          <div class="instruction-details">
+            <h3>What to do:</h3>
+            <ul>
+              <li>Scan for tasks that are done, irrelevant, or waiting on others</li>
+              <li>Delete tasks that "stand out" as no longer relevant</li>
+              <li>Archive completed work for reflection</li>
+              <li>Re-enter recurring tasks when it's time for another pass</li>
+              <li>Keep the list clean and honest</li>
             </ul>
-            <button id="startMaintenanceStage" class="guide-start-btn">Start Maintenance</button>
           </div>
+          <button id="startMaintenanceStage" class="start-step-btn">Start Maintenance</button>
+        </div>
+
+        <div id="maintainMode" class="mode-panel hidden">
 
           <div id="maintainContent" class="maintain-content">
             <h2>Maintenance</h2>
@@ -172,19 +213,26 @@
           </div>
         </div>
 
-        <div id="reflectMode" class="mode-panel hidden">
-          <div id="reflectLandingPage" class="guide-landing hidden">
-            <h2>Ready to Reflect</h2>
-            <p class="guide-intro">
-              Take a breath and notice what shifted. Reflection locks in momentum and points you toward the next cycle.
-            </p>
-            <ul class="guide-steps">
-              <li>Celebrate touch counts and dotted wins.</li>
-              <li>Look for patterns in what moved easily.</li>
-              <li>Note any insights you want to carry forward.</li>
+        <div id="reflectInstructions" class="instructions-panel hidden">
+          <h2>Step 5: Reflection</h2>
+          <p class="step-intro">
+            Take a breath and notice what shifted. Reflection locks in momentum and points you toward the next cycle.
+            This is where you celebrate progress and learn from patterns.
+          </p>
+          <div class="instruction-details">
+            <h3>What to do:</h3>
+            <ul>
+              <li>Celebrate completed tasks and time logged</li>
+              <li>Look for patterns in what moved easily vs. what resisted</li>
+              <li>Notice how resistance changed over multiple scans</li>
+              <li>Note insights to carry forward to the next cycle</li>
+              <li>Acknowledge the clumping effect of re-entered tasks</li>
             </ul>
-            <button id="startReflectionStage" class="guide-start-btn">Start Reflection</button>
           </div>
+          <button id="startReflectionStage" class="start-step-btn">Start Reflection</button>
+        </div>
+
+        <div id="reflectMode" class="mode-panel hidden">
 
           <div id="reflectContent" class="reflect-content">
             <h2>Reflection</h2>
@@ -206,40 +254,6 @@
           </div>
         </div>
 
-        <div id="settingsMode" class="mode-panel hidden">
-          <h2>Settings</h2>
-          <p class="mode-tip">Adjust how Resistance Zero behaves to match your flow.</p>
-
-          <section class="settings-section">
-            <h3>Scanning</h3>
-            <div class="setting-option">
-              <div>
-                <div class="setting-label">Scan Direction</div>
-                <div class="setting-description">Choose the order tasks appear when scanning.</div>
-              </div>
-              <select id="settingsScanDirection">
-                <option value="forward">Forward (first to last)</option>
-                <option value="backward">Backward (last to first)</option>
-              </select>
-            </div>
-          </section>
-
-          <section class="settings-section">
-            <h3>Guidance</h3>
-            <div class="setting-option">
-              <div>
-                <div class="setting-label">Guide Mode</div>
-                <div class="setting-description">
-                  Restrict navigation to a coached step-by-step flow. Great for staying on rails when you want structure.
-                </div>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" id="settingsGuideMode" />
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </section>
-        </div>
       </section>
     </main>
 
