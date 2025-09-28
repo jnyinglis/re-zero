@@ -49,6 +49,11 @@ const guidanceByMode = {
     "Look for clumps of similar wins—they reveal momentum.",
     "Keep reflection light. Notice and move forward.",
   ],
+  settings: [
+    "Tune scanning to fit your rhythm—changes apply immediately.",
+    "Resistance Zero works best when it matches your instincts.",
+    "Come back here anytime to tweak how the app feels.",
+  ],
 };
 
 const coachTips = [
@@ -69,6 +74,7 @@ const elements = {
     action: document.getElementById("actionMode"),
     maintain: document.getElementById("maintainMode"),
     reflect: document.getElementById("reflectMode"),
+    settings: document.getElementById("settingsMode"),
   },
   taskForm: document.getElementById("taskForm"),
   taskText: document.getElementById("taskText"),
@@ -93,6 +99,9 @@ const elements = {
     scans: document.getElementById("insightScans"),
     dots: document.getElementById("insightDots"),
     minutes: document.getElementById("insightMinutes"),
+  },
+  settings: {
+    scanDirection: document.getElementById("settingsScanDirection"),
   },
 };
 
@@ -168,6 +177,16 @@ elements.scanDirectionButtons.forEach((btn) => {
   });
 });
 
+if (elements.settings.scanDirection) {
+  elements.settings.scanDirection.value = state.settings.scanDirection;
+  elements.settings.scanDirection.addEventListener("change", (event) => {
+    state.settings.scanDirection = event.target.value;
+    saveState();
+    highlightScanDirection();
+    render();
+  });
+}
+
 // Simplified scanning event listeners
 document.getElementById("beginScanBtn")?.addEventListener("click", () => {
   if (!state.tasks.some((t) => t.status === "active")) {
@@ -182,11 +201,6 @@ document.getElementById("dotTask")?.addEventListener("click", () => advanceNewSc
 document.getElementById("finishScan")?.addEventListener("click", () => finishNewScan());
 
 // Scan direction setting
-document.getElementById("scanDirectionSelect")?.addEventListener("change", (e) => {
-  state.settings.scanDirection = e.target.value;
-  saveState();
-});
-
 function setMode(mode) {
   currentMode = mode;
   elements.modeButtons.forEach((button) => {
@@ -202,14 +216,6 @@ function setMode(mode) {
     const scanProgress = document.getElementById("scanProgress");
     if (scanStart) scanStart.style.display = "flex";
     if (scanProgress) scanProgress.classList.add("hidden");
-  }
-
-  // Update scan direction dropdown
-  if (mode === "list") {
-    const scanDirectionSelect = document.getElementById("scanDirectionSelect");
-    if (scanDirectionSelect) {
-      scanDirectionSelect.value = state.settings.scanDirection;
-    }
   }
 
   updateGuidance();
@@ -262,6 +268,7 @@ function render() {
   renderActionList();
   renderMaintenanceList();
   renderReflection();
+  renderSettingsPanel();
   updateMetrics();
   if (currentMode === "scan") {
     renderScanView();
@@ -275,6 +282,8 @@ function renderListPreview() {
     .filter((task) => task.status === "active")
     .forEach((task) => {
       const item = document.createElement("li");
+      item.classList.add("swipeable");
+      item.dataset.taskId = task.id;
 
       // Add visual cues for project relationships
       let prefix = "";
@@ -307,8 +316,87 @@ function renderListPreview() {
         item.addEventListener("click", () => showProjectRollup(task.id));
       }
 
+      addSwipeToDelete(item, task.id);
       elements.listPreview.appendChild(item);
     });
+}
+
+function addSwipeToDelete(item, taskId) {
+  let startX = 0;
+  let currentX = 0;
+  let pointerId = null;
+
+  const resetPosition = () => {
+    item.style.transform = "";
+    item.classList.remove("dragging");
+    item.dataset.swiping = "false";
+  };
+
+  const completeDeletion = () => {
+    item.classList.remove("dragging");
+    item.classList.add("deleting");
+    setTimeout(() => deleteTask(taskId), 160);
+  };
+
+  const endGesture = (event) => {
+    if (event.pointerId !== pointerId) return;
+    try {
+      item.releasePointerCapture(pointerId);
+    } catch (error) {
+      // Ignore release errors on unsupported browsers
+    }
+    const deltaX = Math.min(currentX - startX, 0);
+    if (deltaX < -90) {
+      completeDeletion();
+    } else {
+      resetPosition();
+    }
+    pointerId = null;
+  };
+
+  const cancelGesture = (event) => {
+    if (pointerId === null || event.pointerId !== pointerId) return;
+    try {
+      item.releasePointerCapture(pointerId);
+    } catch (error) {
+      // Ignore release errors on unsupported browsers
+    }
+    pointerId = null;
+    resetPosition();
+  };
+
+  item.addEventListener("pointerdown", (event) => {
+    pointerId = event.pointerId;
+    startX = event.clientX;
+    currentX = startX;
+    item.dataset.swiping = "false";
+    item.classList.add("dragging");
+    item.setPointerCapture(pointerId);
+  });
+
+  item.addEventListener("pointermove", (event) => {
+    if (pointerId === null || event.pointerId !== pointerId) return;
+    currentX = event.clientX;
+    let deltaX = currentX - startX;
+    if (deltaX > 0) {
+      deltaX *= 0.3;
+    }
+    if (Math.abs(deltaX) > 6) {
+      item.dataset.swiping = "true";
+    }
+    item.style.transform = `translateX(${Math.min(deltaX, 0)}px)`;
+  });
+
+  item.addEventListener("pointerup", endGesture);
+  item.addEventListener("pointercancel", cancelGesture);
+  item.addEventListener("lostpointercapture", cancelGesture);
+
+  item.addEventListener("click", (event) => {
+    if (item.dataset.swiping === "true") {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
 }
 
 function beginScan() {
@@ -534,6 +622,11 @@ function renderReflection() {
     });
 }
 
+function renderSettingsPanel() {
+  if (!elements.settings.scanDirection) return;
+  elements.settings.scanDirection.value = state.settings.scanDirection;
+}
+
 function buildTaskCard(task, options = {}) {
   const card = document.createElement("article");
   card.className = "task-card";
@@ -646,6 +739,19 @@ function progressTask(taskId) {
   task.updatedAt = Date.now();
   state.tasks.push(task);
   saveState();
+  render();
+}
+
+function deleteTask(taskId) {
+  const index = state.tasks.findIndex((t) => t.id === taskId);
+  if (index === -1) return;
+  if (isTimerRunning(taskId)) {
+    stopTimer();
+  }
+  const [task] = state.tasks.splice(index, 1);
+  if (task) {
+    clearTaskDot(task);
+  }
   render();
 }
 
