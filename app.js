@@ -9,6 +9,7 @@ const defaultState = {
   tasks: [],
   settings: {
     scanDirection: "forward",
+    guideMode: false,
   },
   metrics: {
     totalScans: 0,
@@ -16,10 +17,24 @@ const defaultState = {
   },
   daily: {},
   tipsIndex: 0,
+  guide: {
+    started: false,
+    activeIndex: 0,
+  },
 };
 
 let state = loadState();
+if (!state.guide) {
+  state.guide = clone(defaultState.guide);
+}
+if (typeof state.settings.guideMode !== "boolean") {
+  state.settings.guideMode = defaultState.settings.guideMode;
+}
 let currentMode = "list";
+if (state.settings.guideMode && state.guide.started) {
+  ensureGuideIndex();
+  currentMode = guideFlow[state.guide.activeIndex] || "list";
+}
 let scanSession = null;
 let activeTimer = null;
 
@@ -54,6 +69,15 @@ const guidanceByMode = {
     "Resistance Zero works best when it matches your instincts.",
     "Come back here anytime to tweak how the app feels.",
   ],
+};
+
+const guideFlow = ["list", "scan", "action", "maintain", "reflect"];
+const guideLabels = {
+  list: "List Building",
+  scan: "Scanning",
+  action: "Action",
+  maintain: "Maintenance",
+  reflect: "Reflection",
 };
 
 const coachTips = [
@@ -102,12 +126,41 @@ const elements = {
   },
   settings: {
     scanDirection: document.getElementById("settingsScanDirection"),
+    guideMode: document.getElementById("settingsGuideMode"),
+  },
+  guide: {
+    controls: document.getElementById("guideControls"),
+    prev: document.getElementById("guidePrev"),
+    next: document.getElementById("guideNext"),
+    progress: document.getElementById("guideProgressLabel"),
+    landing: document.getElementById("guideLanding"),
+    builder: document.getElementById("listBuilderContent"),
+    start: document.getElementById("guideStartButton"),
   },
 };
 
 elements.modeButtons.forEach((button) => {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 });
+
+if (elements.guide.start) {
+  elements.guide.start.addEventListener("click", () => startGuideSession());
+}
+
+if (elements.guide.prev) {
+  elements.guide.prev.addEventListener("click", () => navigateGuide(-1));
+}
+
+if (elements.guide.next) {
+  elements.guide.next.addEventListener("click", () => handleGuideNext());
+}
+
+if (elements.settings.guideMode) {
+  elements.settings.guideMode.checked = state.settings.guideMode;
+  elements.settings.guideMode.addEventListener("change", (event) => {
+    toggleGuideMode(event.target.checked);
+  });
+}
 
 // Quick add functionality
 document.getElementById("quickAddBtn").addEventListener("click", () => {
@@ -202,6 +255,16 @@ document.getElementById("finishScan")?.addEventListener("click", () => finishNew
 
 // Scan direction setting
 function setMode(mode) {
+  if (isGuideModeEnabled() && mode !== "settings") {
+    if (!state.guide.started) {
+      state.guide.activeIndex = 0;
+      mode = "list";
+    } else {
+      ensureGuideIndex();
+      mode = guideFlow[state.guide.activeIndex] || "list";
+    }
+  }
+
   currentMode = mode;
   elements.modeButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === mode);
@@ -222,9 +285,78 @@ function setMode(mode) {
   render();
 }
 
+function isGuideModeEnabled() {
+  return Boolean(state.settings.guideMode);
+}
+
+function ensureGuideIndex() {
+  if (!state.guide) {
+    state.guide = clone(defaultState.guide);
+  }
+  if (
+    typeof state.guide.activeIndex !== "number" ||
+    state.guide.activeIndex < 0 ||
+    state.guide.activeIndex >= guideFlow.length
+  ) {
+    state.guide.activeIndex = 0;
+  }
+}
+
+function startGuideSession() {
+  state.guide.started = true;
+  state.guide.activeIndex = 0;
+  setMode("list");
+}
+
+function toggleGuideMode(enabled) {
+  state.settings.guideMode = enabled;
+  if (!enabled) {
+    state.guide.started = false;
+    state.guide.activeIndex = 0;
+    render();
+    return;
+  }
+  state.guide.started = false;
+  state.guide.activeIndex = 0;
+  setMode("list");
+}
+
+function navigateGuide(direction) {
+  if (!state.guide.started) return;
+  ensureGuideIndex();
+  const nextIndex = Math.min(
+    guideFlow.length - 1,
+    Math.max(0, state.guide.activeIndex + direction)
+  );
+  if (nextIndex === state.guide.activeIndex) return;
+  state.guide.activeIndex = nextIndex;
+  setMode(guideFlow[state.guide.activeIndex]);
+}
+
+function handleGuideNext() {
+  if (!state.guide.started) return;
+  ensureGuideIndex();
+  if (state.guide.activeIndex >= guideFlow.length - 1) {
+    restartGuideFlow();
+    return;
+  }
+  navigateGuide(1);
+}
+
+function restartGuideFlow() {
+  state.guide.started = false;
+  state.guide.activeIndex = 0;
+  setMode("list");
+}
+
 function updateGuidance() {
-  const messages = guidanceByMode[currentMode] || [];
-  const message = messages[Math.floor(Math.random() * messages.length)] || "";
+  let message = "";
+  if (isGuideModeEnabled() && !state.guide.started && currentMode === "list") {
+    message = "Guide mode is ready. Press Start to move through the cycle.";
+  } else {
+    const messages = guidanceByMode[currentMode] || [];
+    message = messages[Math.floor(Math.random() * messages.length)] || "";
+  }
   elements.guidanceBar.textContent = message;
   const tip = coachTips[state.tipsIndex % coachTips.length];
   elements.coachTips.textContent = tip;
@@ -264,16 +396,93 @@ function createTask({ text, resistance, level, notes, parentId = null }) {
 
 function render() {
   highlightScanDirection();
+  updateNavigation();
   renderListPreview();
   renderActionList();
   renderMaintenanceList();
   renderReflection();
   renderSettingsPanel();
   updateMetrics();
+  updateGuideUI();
   if (currentMode === "scan") {
     renderScanView();
   }
   saveState();
+}
+
+function updateNavigation() {
+  const guideEnabled = isGuideModeEnabled();
+  elements.modeButtons.forEach((button) => {
+    button.classList.remove("hidden-button");
+    button.disabled = guideEnabled && button.dataset.mode === currentMode;
+  });
+
+  if (!guideEnabled) {
+    return;
+  }
+
+  ensureGuideIndex();
+  const currentStep = guideFlow[state.guide.activeIndex] || "list";
+
+  elements.modeButtons.forEach((button) => {
+    const mode = button.dataset.mode;
+    const isSettings = mode === "settings";
+    const isActiveStep = mode === currentStep;
+    if (isSettings || isActiveStep) {
+      button.classList.remove("hidden-button");
+      button.disabled = mode === currentMode;
+    } else {
+      button.classList.add("hidden-button");
+    }
+  });
+}
+
+function updateGuideUI() {
+  const guideEnabled = isGuideModeEnabled();
+  const { landing, builder, controls, prev, next, progress } = elements.guide;
+
+  const showLanding = guideEnabled && !state.guide.started && currentMode === "list";
+  if (landing) {
+    landing.classList.toggle("hidden", !showLanding);
+  }
+  if (builder) {
+    builder.classList.toggle("hidden", showLanding);
+  }
+
+  if (!controls) {
+    return;
+  }
+
+  const showControls = guideEnabled && state.guide.started && currentMode !== "settings";
+  controls.classList.toggle("hidden", !showControls);
+
+  if (!showControls) {
+    if (progress) {
+      progress.textContent = "";
+    }
+    if (next) {
+      next.textContent = "Next";
+    }
+    return;
+  }
+
+  ensureGuideIndex();
+  const stepIndex = state.guide.activeIndex;
+  const totalSteps = guideFlow.length;
+
+  if (progress) {
+    const stepKey = guideFlow[stepIndex] || "";
+    const stepName = guideLabels[stepKey] || capitalize(stepKey);
+    progress.textContent = `Step ${stepIndex + 1} of ${totalSteps}: ${stepName}`;
+  }
+
+  if (prev) {
+    prev.disabled = stepIndex === 0;
+  }
+
+  if (next) {
+    next.textContent = stepIndex === totalSteps - 1 ? "Finish" : "Next";
+  }
 }
 
 function renderListPreview() {
@@ -623,8 +832,12 @@ function renderReflection() {
 }
 
 function renderSettingsPanel() {
-  if (!elements.settings.scanDirection) return;
-  elements.settings.scanDirection.value = state.settings.scanDirection;
+  if (elements.settings.scanDirection) {
+    elements.settings.scanDirection.value = state.settings.scanDirection;
+  }
+  if (elements.settings.guideMode) {
+    elements.settings.guideMode.checked = state.settings.guideMode;
+  }
 }
 
 function buildTaskCard(task, options = {}) {
@@ -818,7 +1031,16 @@ function loadState() {
       ...task,
       lastDottedOn: task.lastDottedOn || null,
     }));
-    return { ...clone(defaultState), ...parsed, tasks, daily: parsed.daily || {} };
+    const guide = parsed.guide
+      ? { ...clone(defaultState.guide), ...parsed.guide }
+      : clone(defaultState.guide);
+    return {
+      ...clone(defaultState),
+      ...parsed,
+      tasks,
+      daily: parsed.daily || {},
+      guide,
+    };
   } catch (error) {
     console.warn("Unable to load saved data", error);
     return clone(defaultState);
@@ -1224,4 +1446,4 @@ function unlinkSubtasks(projectId) {
   render();
 }
 
-setMode("list");
+setMode(currentMode);

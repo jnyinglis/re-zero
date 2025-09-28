@@ -22,44 +22,67 @@
         <button class="mode-button" data-mode="maintain">Maintenance</button>
         <button class="mode-button" data-mode="reflect">Reflection</button>
         <button class="mode-button" data-mode="settings">Settings</button>
+        <div id="guideControls" class="guide-controls hidden">
+          <button id="guidePrev" class="guide-nav-btn">Previous</button>
+          <div id="guideProgressLabel" class="guide-progress"></div>
+          <button id="guideNext" class="guide-nav-btn primary">Next</button>
+        </div>
       </section>
 
       <section class="content">
         <div id="listMode" class="mode-panel">
-          <div class="quick-add">
-            <input type="text" id="taskText" placeholder="Add a task..." class="quick-task-input" />
-            <button type="button" id="quickAddBtn" class="quick-add-btn">+</button>
+          <div id="guideLanding" class="guide-landing hidden">
+            <h2>Welcome to Guide Mode</h2>
+            <p class="guide-intro">
+              We will walk you through the Resistance Zero cycle. Capture everything, scan for what feels effortless, act, tidy
+              up, and notice the wins.
+            </p>
+            <ol class="guide-steps">
+              <li><strong>List Building</strong> – empty your head into one flat list.</li>
+              <li><strong>Scanning</strong> – pass through quickly and dot the zero-resistance tasks.</li>
+              <li><strong>Action</strong> – take small moves on each dotted item and re-enter what remains.</li>
+              <li><strong>Maintenance</strong> – delete or archive what now feels complete or irrelevant.</li>
+              <li><strong>Reflection</strong> – notice progress and patterns before beginning another cycle.</li>
+            </ol>
+            <button id="guideStartButton" class="guide-start-btn">Start Guided Session</button>
           </div>
 
-          <div class="task-list-view">
-            <ul id="listPreview" class="task-list-items"></ul>
-          </div>
+          <div id="listBuilderContent" class="list-builder">
+            <div class="quick-add">
+              <input type="text" id="taskText" placeholder="Add a task..." class="quick-task-input" />
+              <button type="button" id="quickAddBtn" class="quick-add-btn">+</button>
+            </div>
 
-          <div id="expandedForm" class="expanded-form hidden">
-            <form id="taskForm" class="task-form-compact">
-              <input type="hidden" id="pendingTaskText" />
-              <label>
-                Resistance (0-10)
-                <input type="number" id="taskResistance" min="0" max="10" />
-              </label>
-              <label>
-                Level
-                <select id="taskLevel">
-                  <option value="unspecified">Unspecified</option>
-                  <option value="project">Project</option>
-                  <option value="step">Step</option>
-                  <option value="meta">Meta</option>
-                </select>
-              </label>
-              <label>
-                Notes
-                <textarea id="taskNotes" rows="2" placeholder="Optional context or links"></textarea>
-              </label>
-              <div class="form-actions">
-                <button type="submit" class="save-btn">Save</button>
-                <button type="button" id="cancelForm" class="cancel-btn">Cancel</button>
-              </div>
-            </form>
+            <div class="task-list-view">
+              <ul id="listPreview" class="task-list-items"></ul>
+            </div>
+
+            <div id="expandedForm" class="expanded-form hidden">
+              <form id="taskForm" class="task-form-compact">
+                <input type="hidden" id="pendingTaskText" />
+                <label>
+                  Resistance (0-10)
+                  <input type="number" id="taskResistance" min="0" max="10" />
+                </label>
+                <label>
+                  Level
+                  <select id="taskLevel">
+                    <option value="unspecified">Unspecified</option>
+                    <option value="project">Project</option>
+                    <option value="step">Step</option>
+                    <option value="meta">Meta</option>
+                  </select>
+                </label>
+                <label>
+                  Notes
+                  <textarea id="taskNotes" rows="2" placeholder="Optional context or links"></textarea>
+                </label>
+                <div class="form-actions">
+                  <button type="submit" class="save-btn">Save</button>
+                  <button type="button" id="cancelForm" class="cancel-btn">Cancel</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
 
@@ -138,6 +161,22 @@
                 <option value="forward">Forward (first to last)</option>
                 <option value="backward">Backward (last to first)</option>
               </select>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h3>Guidance</h3>
+            <div class="setting-option">
+              <div>
+                <div class="setting-label">Guide Mode</div>
+                <div class="setting-description">
+                  Restrict navigation to a coached step-by-step flow. Great for staying on rails when you want structure.
+                </div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="settingsGuideMode" />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
           </section>
         </div>
