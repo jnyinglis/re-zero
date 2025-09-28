@@ -21,6 +21,7 @@
         <button class="mode-button" data-mode="action">Action</button>
         <button class="mode-button" data-mode="maintain">Maintenance</button>
         <button class="mode-button" data-mode="reflect">Reflection</button>
+        <button class="mode-button" data-mode="settings">Settings</button>
       </section>
 
       <section class="content">
@@ -32,16 +33,6 @@
 
           <div class="task-list-view">
             <ul id="listPreview" class="task-list-items"></ul>
-          </div>
-
-          <div class="scan-direction-setting">
-            <label>
-              Scan Direction
-              <select id="scanDirectionSelect">
-                <option value="forward">Forward (first to last)</option>
-                <option value="backward">Backward (last to first)</option>
-              </select>
-            </label>
           </div>
 
           <div id="expandedForm" class="expanded-form hidden">
@@ -130,6 +121,25 @@
               <ul id="archivedList"></ul>
             </div>
           </div>
+        </div>
+
+        <div id="settingsMode" class="mode-panel hidden">
+          <h2>Settings</h2>
+          <p class="mode-tip">Adjust how Resistance Zero behaves to match your flow.</p>
+
+          <section class="settings-section">
+            <h3>Scanning</h3>
+            <div class="setting-option">
+              <div>
+                <div class="setting-label">Scan Direction</div>
+                <div class="setting-description">Choose the order tasks appear when scanning.</div>
+              </div>
+              <select id="settingsScanDirection">
+                <option value="forward">Forward (first to last)</option>
+                <option value="backward">Backward (last to first)</option>
+              </select>
+            </div>
+          </section>
         </div>
       </section>
     </main>
