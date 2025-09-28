@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resistance Zero – POC</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Resistance Zero</h1>
+      <div class="guidance" id="guidanceBar">
+        Welcome! Choose a mode to get started.
+      </div>
+    </header>
+
+    <main class="app">
+      <section class="modes">
+        <button class="mode-button" data-mode="list">List Building</button>
+        <button class="mode-button" data-mode="scan">Scanning</button>
+        <button class="mode-button" data-mode="action">Action</button>
+        <button class="mode-button" data-mode="maintain">Maintenance</button>
+        <button class="mode-button" data-mode="reflect">Reflection</button>
+      </section>
+
+      <section class="content">
+        <div id="listMode" class="mode-panel">
+          <h2>Capture tasks with zero friction</h2>
+          <form id="taskForm" class="task-form">
+            <label>
+              Task
+              <input type="text" id="taskText" required placeholder="Write the next thing on your mind" />
+            </label>
+            <label>
+              Resistance (0-10)
+              <input type="number" id="taskResistance" min="0" max="10" />
+            </label>
+            <label>
+              Level
+              <select id="taskLevel">
+                <option value="unspecified">Unspecified</option>
+                <option value="project">Project</option>
+                <option value="step">Step</option>
+                <option value="meta">Meta</option>
+              </select>
+            </label>
+            <label>
+              Notes
+              <textarea id="taskNotes" rows="2" placeholder="Optional context or links"></textarea>
+            </label>
+            <button type="submit">Add Task</button>
+          </form>
+
+          <div class="list-preview">
+            <h3>Current List</h3>
+            <ul id="listPreview"></ul>
+          </div>
+        </div>
+
+        <div id="scanMode" class="mode-panel hidden">
+          <h2>Scan the entire list in one direction</h2>
+          <div class="scan-controls">
+            <div>
+              Scan Direction:
+              <button type="button" data-direction="forward" class="scan-direction">Forward</button>
+              <button type="button" data-direction="backward" class="scan-direction">Backward</button>
+            </div>
+            <button type="button" id="startScan">Start Scan</button>
+            <div id="scanStatus"></div>
+          </div>
+          <div class="scan-view" id="scanView"></div>
+        </div>
+
+        <div id="actionMode" class="mode-panel hidden">
+          <h2>Act on dotted tasks</h2>
+          <p class="mode-tip">Take a small step, log time if useful, then confirm what happened.</p>
+          <div id="actionList" class="task-list"></div>
+        </div>
+
+        <div id="maintainMode" class="mode-panel hidden">
+          <h2>Maintenance</h2>
+          <p class="mode-tip">Delete what no longer belongs. Archived tasks stay visible in Reflection.</p>
+          <div id="maintenanceList" class="task-list"></div>
+        </div>
+
+        <div id="reflectMode" class="mode-panel hidden">
+          <h2>Reflection</h2>
+          <div class="reflection-insights">
+            <div class="insight" id="insightScans">Scans today: 0</div>
+            <div class="insight" id="insightDots">Tasks dotted today: 0</div>
+            <div class="insight" id="insightMinutes">Minutes logged: 0</div>
+          </div>
+          <div class="reflection-lists">
+            <div>
+              <h3>Completed</h3>
+              <ul id="completedList"></ul>
+            </div>
+            <div>
+              <h3>Archived</h3>
+              <ul id="archivedList"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div id="metrics">
+        <span id="metricTotalTasks">Total Tasks: 0</span>
+        <span id="metricDotted">Dotted: 0</span>
+        <span id="metricActive">Active: 0</span>
+      </div>
+      <div id="coachTips">Scanning chips away resistance. Keep passing through!</div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
