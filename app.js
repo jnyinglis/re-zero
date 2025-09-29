@@ -329,8 +329,6 @@ document.getElementById("beginScanBtn")?.addEventListener("click", () => {
   startSimplifiedScan();
 });
 
-document.getElementById("skipTask")?.addEventListener("click", () => advanceNewScan(false));
-document.getElementById("dotTask")?.addEventListener("click", () => advanceNewScan(true));
 document.getElementById("finishScan")?.addEventListener("click", () => finishNewScan());
 
 // Scan direction setting
@@ -1714,6 +1712,9 @@ function showCurrentStep() {
   if (targetPanel) {
     targetPanel.classList.remove("hidden");
   }
+
+  // Update current mode to trigger proper rendering
+  setMode(step.mode);
 
   updateGuideControls();
 }
