@@ -44,17 +44,25 @@ body {
 }
 
 .app {
-  display: grid;
-  grid-template-columns: minmax(220px, 260px) 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem;
   flex: 1 1 auto;
 }
 
+.app:has(#introPage:not(.hidden)) {
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1.5rem;
+}
+
 .modes {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.75rem;
+  order: 2;
 }
 
 .mode-button.hidden-button {
@@ -69,7 +77,10 @@ body {
   border-radius: 12px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .guide-progress {
@@ -137,6 +148,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  order: 1;
 }
 
 .mode-panel h2 {
@@ -235,6 +247,70 @@ body {
   color: white;
   font-weight: 700;
   cursor: pointer;
+}
+
+.task-list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-list-items li {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-list-items li.project {
+  border-left: 4px solid var(--primary);
+  background: rgba(0, 56, 255, 0.02);
+}
+
+.task-list-items li.subtask {
+  margin-left: 1rem;
+  border-left: 2px solid var(--accent);
+  background: rgba(3, 168, 124, 0.02);
+}
+
+.task-content {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.quick-add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-task-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.quick-add-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .list-preview ul,
@@ -1026,6 +1102,7 @@ body {
 /* Intro page styles */
 .intro-page {
   max-width: 600px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
