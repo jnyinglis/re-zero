@@ -692,6 +692,7 @@ function updateGuideUI() {
 function renderListPreview() {
   // Defensive element checking
   const listPreview = elements?.listPreview || document.getElementById("listPreview");
+  const noTasksMessage = document.getElementById("noTasksMessage");
   if (!listPreview) {
     console.warn("listPreview element not found");
     return;
@@ -705,9 +706,18 @@ function renderListPreview() {
   }
 
   listPreview.innerHTML = "";
-  state.tasks
-    .filter((task) => task.status === "active")
-    .forEach((task) => {
+  const activeTasks = state.tasks.filter((task) => task.status === "active");
+
+  // Show/hide no tasks message
+  if (noTasksMessage) {
+    if (activeTasks.length === 0) {
+      noTasksMessage.classList.remove("hidden");
+    } else {
+      noTasksMessage.classList.add("hidden");
+    }
+  }
+
+  activeTasks.forEach((task) => {
       const item = document.createElement("li");
       item.classList.add("swipeable");
       item.dataset.taskId = task.id;
@@ -746,6 +756,9 @@ function renderListPreview() {
       addSwipeToDelete(item, task.id);
       elements.listPreview.appendChild(item);
     });
+
+  // Update guide controls to refresh button state
+  updateGuideControls();
 }
 
 function addSwipeToDelete(item, taskId) {
@@ -1382,6 +1395,7 @@ function beginNewScan() {
     scanProgress.classList.remove("hidden");
   }
   renderNewScanView();
+  updateGuideControls(); // Update button to show "Cancel" when scanning starts
 }
 
 function renderNewScanView() {
@@ -1823,11 +1837,23 @@ function updateGuideControls() {
           elements.guide.next.style.display = "inline-block";
           // Add a data attribute to track that this is a cancel button
           elements.guide.next.dataset.action = "cancel-scan";
+          // Add cancel styling
+          elements.guide.next.classList.add("cancel");
+          elements.guide.next.classList.remove("primary");
         } else {
           elements.guide.next.textContent = "Next Step";
           elements.guide.next.style.display = "inline-block";
           // Remove cancel action data attribute
           delete elements.guide.next.dataset.action;
+          // Remove cancel styling and restore primary styling
+          elements.guide.next.classList.remove("cancel");
+          elements.guide.next.classList.add("primary");
+
+          // Check if we're in list building mode and have no tasks
+          if (step.mode === "list" && state.tasks.length === 0) {
+            elements.guide.next.disabled = true;
+            elements.guide.next.classList.add("disabled");
+          }
         }
       }
     }

@@ -114,6 +114,16 @@ body {
   color: #fff;
 }
 
+.guide-nav-btn.cancel {
+  background: var(--danger);
+  color: #fff;
+}
+
+.guide-nav-btn.cancel:hover {
+  background: color-mix(in srgb, var(--danger) 90%, black);
+  box-shadow: 0 6px 16px -10px var(--danger);
+}
+
 .guide-nav-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
