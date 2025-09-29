@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <title>Resistance Zero – POC</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -12,6 +15,9 @@
       <div class="guidance" id="guidanceBar">
         Welcome! Choose a mode to get started.
       </div>
+      <button id="installButton" class="install-btn hidden" type="button" aria-hidden="true">
+        Install App
+      </button>
     </header>
 
     <main class="app">
@@ -256,6 +262,20 @@
 
       </section>
     </main>
+
+    <div
+      id="updateToast"
+      class="update-toast hidden"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    >
+      <span class="update-message">A new version of Resistance Zero is available.</span>
+      <div class="update-actions">
+        <button id="refreshApp" type="button" class="update-btn primary">Refresh now</button>
+        <button id="dismissUpdate" type="button" class="update-btn">Later</button>
+      </div>
+    </div>
 
     <footer class="app-footer">
       <div id="metrics">

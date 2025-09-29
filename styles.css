@@ -28,6 +28,10 @@ body {
   position: sticky;
   top: 0;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
 .app-header h1 {
@@ -38,9 +42,30 @@ body {
 }
 
 .guidance {
-  margin-top: 0.5rem;
   font-size: 0.95rem;
   color: var(--muted);
+}
+
+.install-btn {
+  margin-left: auto;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.install-btn.hidden {
+  display: none !important;
+}
+
+.install-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px -18px var(--primary);
 }
 
 .app {
@@ -577,6 +602,53 @@ body {
   border-top: 1px solid var(--border);
 }
 
+.update-toast {
+  position: fixed;
+  inset: auto 1rem 1rem 1rem;
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 5;
+}
+
+.update-toast.hidden {
+  display: none !important;
+}
+
+.update-message {
+  font-weight: 600;
+}
+
+.update-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.update-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+.update-btn.primary {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.update-btn:hover {
+  filter: brightness(1.05);
+}
+
 #metrics {
   display: flex;
   gap: 1.5rem;
@@ -966,6 +1038,12 @@ body {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
+  }
+}
+
+@media (max-width: 600px) {
+  .update-toast {
+    inset: auto 0.75rem 0.75rem 0.75rem;
   }
 }
 
