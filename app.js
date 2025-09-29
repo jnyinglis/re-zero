@@ -620,11 +620,26 @@ function updateGuideUI() {
 
   ensureGuideIndex();
   const stepIndex = state.guide.activeIndex;
-  const totalSteps = guideFlow.length;
+
+  // Map guide flow indices to logical workflow steps (1-5)
+  const getLogicalStepNumber = (index) => {
+    if (index === 0) return null; // intro has no step number
+    if (index <= 2) return 1; // List Building
+    if (index <= 4) return 2; // Scanning
+    if (index <= 6) return 3; // Action
+    if (index <= 8) return 4; // Maintenance
+    if (index <= 10) return 5; // Reflection
+    return null;
+  };
 
   if (progress) {
     const label = currentStep?.label || capitalize(stepKey || "");
-    progress.textContent = `Step ${stepIndex + 1} of ${totalSteps}: ${label}`;
+    const logicalStep = getLogicalStepNumber(stepIndex);
+    if (logicalStep) {
+      progress.textContent = `Step ${logicalStep} of 5: ${label}`;
+    } else {
+      progress.textContent = label; // For intro, just show label
+    }
   }
 
   if (prev) {
@@ -632,7 +647,7 @@ function updateGuideUI() {
   }
 
   if (next) {
-    next.textContent = stepIndex === totalSteps - 1 ? "Finish" : "Next";
+    next.textContent = stepIndex === guideFlow.length - 1 ? "Finish" : "Next";
   }
 }
 
