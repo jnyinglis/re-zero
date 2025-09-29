@@ -68,6 +68,14 @@ if (state.settings.guideMode && state.guide.started) {
 }
 let scanSession = null;
 let activeTimer = null;
+let deferredInstallPrompt = null;
+let pendingUpdateVersion = null;
+
+const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent || "");
+const isStandalone = () => {
+  const mediaQuery = window.matchMedia ? window.matchMedia("(display-mode: standalone)") : null;
+  return (mediaQuery && mediaQuery.matches) || window.navigator.standalone === true;
+};
 
 const guidanceByMode = {
   list: [
@@ -119,6 +127,11 @@ const elements = (() => {
       introPage: document.getElementById("introPage"),
       modeSection: document.getElementById("modeSection"),
       startRezero: document.getElementById("startRezero"),
+      installButton: document.getElementById("installButton"),
+      updateToast: document.getElementById("updateToast"),
+      updateMessage: document.querySelector("#updateToast .update-message"),
+      refreshApp: document.getElementById("refreshApp"),
+      dismissUpdate: document.getElementById("dismissUpdate"),
       panels: {
         listInstructions: document.getElementById("listInstructions"),
         list: document.getElementById("listMode"),
@@ -185,6 +198,11 @@ const elements = (() => {
       actionList: null,
       maintenanceList: null,
       listPreview: null,
+      installButton: null,
+      updateToast: null,
+      updateMessage: null,
+      refreshApp: null,
+      dismissUpdate: null,
       panels: {},
       guide: {},
       metrics: {},
@@ -193,6 +211,55 @@ const elements = (() => {
     };
   }
 })();
+
+function shouldShowIosInstall() {
+  return isIos && !isStandalone();
+}
+
+function showInstallButton() {
+  if (!elements.installButton) return;
+  elements.installButton.classList.remove("hidden");
+  elements.installButton.removeAttribute("aria-hidden");
+  elements.installButton.disabled = false;
+}
+
+function hideInstallButton() {
+  if (!elements.installButton) return;
+  elements.installButton.classList.add("hidden");
+  elements.installButton.setAttribute("aria-hidden", "true");
+  elements.installButton.disabled = false;
+}
+
+function showUpdatePrompt() {
+  if (!elements.updateToast) return;
+  elements.updateToast.classList.remove("hidden");
+  elements.updateToast.setAttribute("aria-hidden", "false");
+}
+
+function hideUpdatePrompt() {
+  if (!elements.updateToast) return;
+  elements.updateToast.classList.add("hidden");
+  elements.updateToast.setAttribute("aria-hidden", "true");
+}
+
+function showIosInstallInstructions() {
+  const message =
+    "To install Resistance Zero on iPhone or iPad, tap the Share icon in Safari and choose 'Add to Home Screen'.";
+
+  if (typeof window.alert === "function") {
+    window.alert(message);
+  } else {
+    console.info(message);
+  }
+}
+
+function setUpdateMessage(version) {
+  if (!elements.updateMessage) return;
+  const baseMessage = "A new version of Resistance Zero is available.";
+  elements.updateMessage.textContent = version
+    ? `${baseMessage} Reload to upgrade to v${version}.`
+    : baseMessage;
+}
 
 if (elements.startRezero) {
   elements.startRezero.addEventListener("click", () => startResZeroFlow());
@@ -216,6 +283,55 @@ if (elements.guide.maintainAdvance) {
 
 if (elements.guide.reflectAdvance) {
   elements.guide.reflectAdvance.addEventListener("click", () => moveToNextStep());
+}
+
+if (elements.installButton) {
+  elements.installButton.addEventListener("click", async () => {
+    if (deferredInstallPrompt) {
+      try {
+        elements.installButton.disabled = true;
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice.outcome === "accepted") {
+          hideInstallButton();
+        } else {
+          elements.installButton.disabled = false;
+        }
+      } catch (error) {
+        console.error("Install prompt failed", error);
+        elements.installButton.disabled = false;
+      } finally {
+        deferredInstallPrompt = null;
+      }
+    } else if (shouldShowIosInstall()) {
+      showIosInstallInstructions();
+    }
+  });
+}
+
+if (elements.refreshApp) {
+  elements.refreshApp.addEventListener("click", () => {
+    hideUpdatePrompt();
+    if (navigator.serviceWorker?.getRegistration) {
+      navigator.serviceWorker
+        .getRegistration()
+        .then((registration) => {
+          registration?.waiting?.postMessage({ type: "sw.skipWaiting" });
+        })
+        .catch((error) => console.warn("Unable to message waiting service worker", error))
+        .finally(() => {
+          window.location.reload();
+        });
+    } else {
+      window.location.reload();
+    }
+  });
+}
+
+if (elements.dismissUpdate) {
+  elements.dismissUpdate.addEventListener("click", () => {
+    hideUpdatePrompt();
+  });
 }
 
 if (elements.guide.prev) {
@@ -1967,3 +2083,84 @@ if (state.guide.started) {
 // Initial render call to display tasks on page load
 console.log("Calling initial render...");
 render();
+
+initializePWAFeatures();
+
+function monitorServiceWorkerUpdates(registration) {
+  if (!registration) return;
+
+  const listenForInstalledState = (worker) => {
+    if (!worker) return;
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "installed" && navigator.serviceWorker.controller) {
+        setUpdateMessage(pendingUpdateVersion || null);
+        showUpdatePrompt();
+      }
+    });
+  };
+
+  listenForInstalledState(registration.installing);
+
+  if (registration.waiting && navigator.serviceWorker.controller) {
+    setUpdateMessage(pendingUpdateVersion || null);
+    showUpdatePrompt();
+  }
+
+  registration.addEventListener("updatefound", () => {
+    listenForInstalledState(registration.installing);
+  });
+
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data?.type === "sw.updated") {
+        pendingUpdateVersion = event.data.version || null;
+        setUpdateMessage(pendingUpdateVersion);
+        showUpdatePrompt();
+      }
+    });
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      registration.update().catch((error) => {
+        console.warn("Service worker update check failed", error);
+      });
+    }
+  });
+}
+
+function initializePWAFeatures() {
+  if (shouldShowIosInstall() && elements.installButton) {
+    elements.installButton.textContent = "Add to Home Screen";
+    showInstallButton();
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    pendingUpdateVersion = null;
+    if (elements.installButton) {
+      elements.installButton.textContent = "Install App";
+      showInstallButton();
+      elements.installButton.disabled = false;
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    hideInstallButton();
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("service-worker.js")
+        .then((registration) => {
+          monitorServiceWorkerUpdates(registration);
+        })
+        .catch((error) => {
+          console.error("Service worker registration failed", error);
+        });
+    });
+  }
+}
