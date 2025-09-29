@@ -480,9 +480,47 @@ function createTask({ text, resistance, level, notes, parentId = null }) {
     completedAt: null,
     archivedAt: null,
     timeLogs: [],
+    touchLogs: [], // Array of touch events with timestamps and context
     parentId, // Link to parent project
     subtasks: [], // Array of linked subtask IDs
   };
+}
+
+// Touch tracking function - logs all task interactions
+function touchTask(taskId, context, action = null) {
+  const task = state.tasks.find((t) => t.id === taskId);
+  if (!task) return;
+
+  const now = Date.now();
+
+  // Initialize touchLogs if it doesn't exist (for existing tasks)
+  if (!task.touchLogs) {
+    task.touchLogs = [];
+  }
+
+  // Always increment total touches
+  task.touches += 1;
+  task.updatedAt = now;
+
+  // Log the touch event
+  task.touchLogs.push({
+    timestamp: now,
+    context, // e.g., 'scan', 'action', 'maintenance', 'timer'
+    action, // e.g., 'dot', 'skip', 'complete', 'progress', 'archive'
+    touchNumber: task.touches
+  });
+
+  // Only increment scanCount if this is a scanning context
+  if (context === 'scan') {
+    task.scanCount += 1;
+  }
+
+  // Reduce resistance on any interaction (as per original logic)
+  if (typeof task.resistance === "number" && task.resistance > 0) {
+    task.resistance = Math.max(0, task.resistance - 1);
+  }
+
+  saveState();
 }
 
 function render() {
@@ -882,17 +920,10 @@ function renderScanView() {
 function advanceScan() {
   if (!scanSession) return;
   const taskId = scanSession.order[scanSession.index];
-  const task = state.tasks.find((t) => t.id === taskId);
-  if (task) {
-    task.touches += 1;
-    task.scanCount += 1;
-    task.updatedAt = Date.now();
-    if (typeof task.resistance === "number" && task.resistance > 0) {
-      task.resistance = Math.max(0, task.resistance - 1);
-    }
+  if (taskId) {
+    touchTask(taskId, 'scan', 'advance');
   }
   scanSession.index += 1;
-  saveState();
   renderScanView();
 }
 
@@ -1159,6 +1190,10 @@ function toggleTaskTimer(taskId) {
 
 function startTimer(taskId) {
   stopTimer();
+
+  // Track the timer start interaction
+  touchTask(taskId, 'action', 'start_timer');
+
   activeTimer = {
     taskId,
     startedAt: Date.now(),
@@ -1172,7 +1207,18 @@ function stopTimer() {
     activeTimer = null;
     return;
   }
+
   const elapsedMinutes = (Date.now() - activeTimer.startedAt) / 60000;
+
+  // Track the timer stop interaction (but don't increment touches via touchTask since this is automatic)
+  task.touchLogs.push({
+    timestamp: Date.now(),
+    context: 'action',
+    action: 'stop_timer',
+    touchNumber: task.touches, // Keep same touch number since this is just the end of the start_timer action
+    duration: elapsedMinutes
+  });
+
   task.timeLogs.push({ minutes: elapsedMinutes, finishedAt: Date.now() });
   bumpDaily(today(), "minutes", elapsedMinutes);
   task.updatedAt = Date.now();
@@ -1183,13 +1229,15 @@ function stopTimer() {
 function progressTask(taskId) {
   const index = state.tasks.findIndex((t) => t.id === taskId);
   if (index === -1) return;
+
+  // Track the progress interaction
+  touchTask(taskId, 'action', 'progress');
+
   if (isTimerRunning(taskId)) stopTimer();
   const [task] = state.tasks.splice(index, 1);
   clearTaskDot(task);
   task.reentries += 1;
-  task.updatedAt = Date.now();
   state.tasks.push(task);
-  saveState();
   render();
 }
 
@@ -1209,24 +1257,28 @@ function deleteTask(taskId) {
 function completeTask(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return;
+
+  // Track the completion interaction
+  touchTask(taskId, 'action', 'complete');
+
   if (isTimerRunning(taskId)) stopTimer();
   clearTaskDot(task);
   task.status = "completed";
   task.completedAt = Date.now();
-  task.updatedAt = Date.now();
-  saveState();
   render();
 }
 
 function archiveTask(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return;
+
+  // Track the archive interaction
+  touchTask(taskId, 'maintenance', 'archive');
+
   if (isTimerRunning(taskId)) stopTimer();
   clearTaskDot(task);
   task.status = "archived";
   task.archivedAt = Date.now();
-  task.updatedAt = Date.now();
-  saveState();
   render();
 }
 
@@ -1425,17 +1477,12 @@ function advanceNewScan(shouldDot) {
   const currentTask = state.tasks.find((t) => t.id === currentTaskId);
 
   if (currentTask) {
-    // Update task state
-    currentTask.touches += 1;
-    currentTask.scanCount += 1;
-    currentTask.updatedAt = Date.now();
+    // Track the scan interaction
+    const action = shouldDot ? 'dot' : 'skip';
+    touchTask(currentTaskId, 'scan', action);
 
     if (shouldDot) {
       markTaskDotted(currentTask);
-    }
-
-    if (typeof currentTask.resistance === "number" && currentTask.resistance > 0) {
-      currentTask.resistance = Math.max(0, currentTask.resistance - 1);
     }
 
     // Add to recent tasks
@@ -1452,13 +1499,17 @@ function toggleTaskDot(taskId) {
   if (!task) return;
 
   const wasDotted = task.dotted;
+  const action = wasDotted ? 'clear_dot' : 'dot';
+
+  // Track the dot toggle interaction
+  touchTask(taskId, 'action', action);
+
   if (wasDotted) {
     clearTaskDot(task);
   } else {
     markTaskDotted(task);
   }
 
-  task.updatedAt = Date.now();
   saveState();
 
   // Only re-render recent tasks if we're in an active scan
