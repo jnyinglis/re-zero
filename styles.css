@@ -57,6 +57,10 @@ body {
   padding: 2rem 1.5rem;
 }
 
+.app:has(#introPage:not(.hidden)) .content {
+  display: none;
+}
+
 .modes {
   display: flex;
   flex-direction: column;
@@ -914,136 +918,9 @@ body {
     color: var(--text);
   }
 
-  .scan-start {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem;
-    min-height: 300px;
-  }
 
-  .scan-instructions h2 {
-    margin: 0 0 1rem 0;
-    font-size: 1.5rem;
-    color: var(--text);
-  }
 
-  .scan-instructions p {
-    margin: 0 0 2rem 0;
-    color: var(--muted);
-    font-size: 1.1rem;
-  }
 
-  .big-scan-button {
-    padding: 1.5rem 3rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    min-width: 200px;
-    box-shadow: 0 4px 12px rgba(0, 56, 255, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .big-scan-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 56, 255, 0.4);
-  }
-
-  .scan-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .scan-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background: rgba(0, 56, 255, 0.08);
-    border-radius: 8px;
-    font-weight: 600;
-  }
-
-  .finish-scan-btn {
-    padding: 0.5rem 1rem;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .current-task {
-    padding: 1.5rem;
-    background: var(--surface);
-    border: 2px solid var(--primary);
-    border-radius: 12px;
-    text-align: center;
-  }
-
-  .current-task h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
-  }
-
-  .current-task .task-meta {
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  .scan-actions {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .scan-btn {
-    flex: 1;
-    padding: 1rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    min-height: 48px;
-  }
-
-  .scan-btn.primary {
-    background: var(--primary);
-    color: white;
-  }
-
-  .scan-btn.secondary {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-
-  .recent-tasks {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-    padding: 1rem;
-  }
-
-  .recent-header {
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: var(--muted);
-    font-size: 0.9rem;
-  }
-
-  .recent-tasks-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
 
   .recent-task-item {
     display: flex;
@@ -1080,6 +957,197 @@ body {
     color: white;
     border-color: var(--primary);
   }
+}
+
+/* Scan interface styles - moved outside media query for all screen sizes */
+.scan-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  min-height: 300px;
+}
+
+.scan-instructions h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.scan-instructions p {
+  margin: 0 0 2rem 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.big-scan-button {
+  padding: 1.5rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 56, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.big-scan-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 56, 255, 0.4);
+}
+
+.scan-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.scan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(0, 56, 255, 0.08);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.finish-scan-btn {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.finish-scan-btn:hover {
+  background: color-mix(in srgb, var(--accent) 90%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(3, 168, 124, 0.3);
+}
+
+.current-task {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.current-task h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.current-task .task-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.scan-actions {
+  display: flex;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.scan-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.scan-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.scan-btn.secondary {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.scan-btn.secondary:hover {
+  border-color: var(--primary);
+  background: rgba(0, 56, 255, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.scan-btn.primary:hover {
+  background: color-mix(in srgb, var(--primary) 90%, black);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 56, 255, 0.3);
+}
+
+.recent-tasks {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.recent-header {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.recent-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.recent-task-item.dotted {
+  border-color: var(--primary);
+  background: rgba(0, 56, 255, 0.05);
+}
+
+.recent-task-text {
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+.recent-task-toggle {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.recent-task-toggle.dotted {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 
 @media (max-width: 480px) {
@@ -1237,6 +1305,19 @@ body {
 .start-step-btn:hover {
   background: color-mix(in srgb, var(--primary) 90%, black);
   transform: translateY(-1px);
+}
+
+/* No tasks message */
+.no-tasks-message {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.no-tasks-message p {
+  margin: 0;
+  font-size: 1rem;
 }
 
 /* Guide controls */
