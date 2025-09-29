@@ -1877,3 +1877,7 @@ if (state.guide.started) {
     if (panel) panel.classList.add("hidden");
   });
 }
+
+// Initial render call to display tasks on page load
+console.log("Calling initial render...");
+render();
