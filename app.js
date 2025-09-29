@@ -226,15 +226,6 @@ if (elements.guide.next) {
   elements.guide.next.addEventListener("click", () => moveToNextStep());
 }
 
-// Add event listener for scan button
-document.getElementById("beginScanBtn")?.addEventListener("click", () => {
-  if (!state.tasks.some((t) => t.status === "active")) {
-    alert("Add tasks in List Building mode to start scanning.");
-    return;
-  }
-  startSimplifiedScan();
-});
-
 // Add event listeners for scan controls
 document.getElementById("skipTask")?.addEventListener("click", () => {
   advanceNewScan(false);
@@ -353,12 +344,13 @@ function setMode(mode, options = {}) {
     panel.classList.toggle("hidden", key !== mode);
   });
 
-  // Show scan start screen when entering scan mode
+  // Show scan start screen when entering scan mode (but only if not currently scanning)
   if (mode === "scan") {
     const scanStart = document.getElementById("scanStart");
     const scanProgress = document.getElementById("scanProgress");
     if (scanStart) scanStart.style.display = "flex";
-    if (scanProgress) scanProgress.classList.add("hidden");
+    // Only hide scan progress if there's no active scan session
+    if (scanProgress && !scanSession) scanProgress.classList.add("hidden");
   }
 
   updateGuidance();
@@ -504,7 +496,8 @@ function render() {
   updateMetrics();
   updateGuideUI();
   if (currentMode === "scan") {
-    renderScanView();
+    // Disable old renderScanView to prevent conflicts with new scanning system
+    // renderScanView();
   }
   saveState();
 }
