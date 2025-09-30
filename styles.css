@@ -34,6 +34,10 @@ body {
   align-items: flex-start;
 }
 
+body:not(:has(#introPage:not(.hidden))) .app-header {
+  display: none;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
