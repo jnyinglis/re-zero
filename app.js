@@ -1660,6 +1660,7 @@ function finishNewScan() {
       <div class="scan-instructions">
         <h2>Scan complete!</h2>
         <p>Great work! Move to Action mode to work on dotted tasks.</p>
+        <h2>OR</h2>
       </div>
       <button id="beginScanBtn" class="big-scan-button">Scan Again</button>
     `;
