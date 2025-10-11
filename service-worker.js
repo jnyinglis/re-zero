@@ -1,12 +1,11 @@
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4-react";
 const CACHE_NAME = `rz-cache-${CACHE_VERSION}`;
 const OFFLINE_ASSETS = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./manifest.json",
-  "./icons/icon.svg"
+  "/re-zero/",
+  "/re-zero/index.html",
+  "/re-zero/manifest.json",
+  "/re-zero/icons/icon.svg"
+  // Note: Vite assets are hashed and will be cached dynamically
 ];
 
 self.addEventListener("install", (event) => {
@@ -66,7 +65,7 @@ self.addEventListener("fetch", (event) => {
           });
           return response;
         })
-        .catch(() => caches.match("./index.html"));
+        .catch(() => caches.match("/re-zero/index.html"));
     })
   );
 });
