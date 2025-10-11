@@ -740,11 +740,6 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
     width: 100%;
     text-align: center;
   }
-
-  .content {
-    margin-bottom: 70px;
-  }
-
   .app-footer {
     display: none;
   }
@@ -1246,7 +1241,38 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   .modes {
     padding: 0.5rem;
     gap: 0.25rem;
+  
+
+  /* Intro page mobile optimization */
+  .intro-page {
+    padding: 1rem;
   }
+
+  .intro-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .intro-description {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .process-overview {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .process-overview h3 {
+    font-size: 1.1rem;
+  }
+
+  .process-steps li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+
+}
 
   .mode-button {
     padding: 0.6rem 0.25rem;
@@ -1255,9 +1281,54 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   }
 
   .content {
-    margin-bottom: 75px;
+    margin-bottom: 90px;
+    padding: 1rem;
   }
-}
+
+  .app-footer {
+    display: none;
+  }
+
+  /* Instructions panel mobile optimization */
+  .instructions-panel {
+    padding: 1rem;
+    max-width: 100%;
+  }
+
+  .instructions-panel h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .step-intro {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .instruction-details {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .instruction-details h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .instruction-details li {
+    padding: 0.4rem 0;
+    padding-left: 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .start-step-btn {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+
 
 /* Intro page styles */
 .intro-page {
