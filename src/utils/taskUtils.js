@@ -87,3 +87,71 @@ export function clearTaskDot(task, daily, bumpDaily) {
 
   return task
 }
+
+export function createListEntry(taskId) {
+  const now = Date.now()
+  return {
+    id: randomId(),
+    taskId,
+    createdAt: now,
+    actionedAt: null,
+    status: 'active',
+  }
+}
+
+export function markEntryActioned(entry) {
+  return {
+    ...entry,
+    actionedAt: Date.now(),
+    status: 'actioned',
+  }
+}
+
+export function getActiveEntries(listEntries) {
+  return listEntries.filter(entry => entry.status === 'active')
+}
+
+export function getEntriesByDay(listEntries, tasks) {
+  // Group entries by day with task information
+  const grouped = {}
+
+  listEntries.forEach(entry => {
+    const task = tasks.find(t => t.id === entry.taskId)
+    if (!task) return
+
+    const day = new Date(entry.createdAt).toISOString().slice(0, 10)
+    if (!grouped[day]) {
+      grouped[day] = []
+    }
+    grouped[day].push({ entry, task })
+  })
+
+  // Convert to sorted array
+  return Object.keys(grouped)
+    .sort((a, b) => new Date(a) - new Date(b))
+    .map(day => ({
+      day,
+      entries: grouped[day]
+    }))
+}
+
+export function formatDate(dateString) {
+  const date = new Date(dateString)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const dateStr = date.toISOString().slice(0, 10)
+  const todayStr = today.toISOString().slice(0, 10)
+  const yesterdayStr = yesterday.toISOString().slice(0, 10)
+
+  if (dateStr === todayStr) return 'Today'
+  if (dateStr === yesterdayStr) return 'Yesterday'
+
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}

@@ -1,5 +1,5 @@
 import { useAppState } from '../../context/AppStateContext'
-import { touchTask, markTaskDotted } from '../../utils/taskUtils'
+import { touchTask, markTaskDotted, getActiveEntries } from '../../utils/taskUtils'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -24,9 +24,9 @@ function Action() {
   const { state, updateState, scanSession, setScanSession } = useAppState()
 
   const startScan = () => {
-    const tasks = state.tasks.filter(t => t.status === 'active')
+    const activeEntries = getActiveEntries(state.listEntries)
     setScanSession({
-      order: tasks.map(t => t.id),
+      order: activeEntries.map(e => e.taskId),
       index: 0,
       startedAt: Date.now(),
       recentTasks: []
@@ -37,7 +37,7 @@ function Action() {
     if (!scanSession) return
     const taskId = scanSession.order[scanSession.index]
     const task = state.tasks.find(t => t.id === taskId)
-    
+
     if (task) {
       touchTask(task, 'scan', shouldDot ? 'dot' : 'skip')
       if (shouldDot) {
@@ -54,7 +54,7 @@ function Action() {
     }
   }
 
-  const activeTasks = state.tasks.filter(t => t.status === 'active')
+  const activeEntries = getActiveEntries(state.listEntries)
 
   if (!scanSession) {
     return (
@@ -64,7 +64,7 @@ function Action() {
             <h2>Ready to scan?</h2>
             <p>Go through each task quickly and dot what feels effortless.</p>
           </div>
-          <button onClick={startScan} className="big-scan-button" disabled={activeTasks.length === 0}>Begin</button>
+          <button onClick={startScan} className="big-scan-button" disabled={activeEntries.length === 0}>Begin</button>
         </div>
       </div>
     )

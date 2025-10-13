@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAppState } from '../../context/AppStateContext'
-import { createTask } from '../../utils/taskUtils'
+import { createTask, createListEntry, getEntriesByDay, formatDate } from '../../utils/taskUtils'
 
 function Instructions() {
   const { updateState, state } = useAppState()
@@ -33,15 +33,15 @@ function Action() {
   const handleQuickAdd = () => {
     if (!taskText.trim()) return
     const task = createTask({ text: taskText.trim(), resistance: null, level: 'unspecified', notes: '' })
-    updateState({ tasks: [...state.tasks, task] })
+    const listEntry = createListEntry(task.id)
+    updateState({
+      tasks: [...state.tasks, task],
+      listEntries: [...state.listEntries, listEntry]
+    })
     setTaskText('')
   }
 
-  const handleDelete = (taskId) => {
-    updateState({ tasks: state.tasks.filter(t => t.id !== taskId) })
-  }
-
-  const activeTasks = state.tasks.filter(t => t.status === 'active')
+  const entriesByDay = getEntriesByDay(state.listEntries, state.tasks)
 
   return (
     <div className="mode-panel">
@@ -58,14 +58,22 @@ function Action() {
           <button onClick={handleQuickAdd} className="quick-add-btn">+</button>
         </div>
         <div className="task-list-view">
-          <ul className="task-list-items">
-            {activeTasks.map(task => (
-              <li key={task.id}>
-                <span className="task-content">{task.text}{task.dotted ? ' • dotted' : ''}</span>
-              </li>
-            ))}
-          </ul>
-          {activeTasks.length === 0 && <div className="no-tasks-message"><p>Start by adding your first task</p></div>}
+          {entriesByDay.length === 0 && <div className="no-tasks-message"><p>Start by adding your first task</p></div>}
+          {entriesByDay.map(({ day, entries }) => (
+            <div key={day} className="day-group">
+              <div className="day-divider">{formatDate(day)}</div>
+              <ul className="task-list-items">
+                {entries.map(({ entry, task }) => (
+                  <li key={entry.id} className={entry.status === 'actioned' ? 'actioned' : ''}>
+                    <span className="task-content">
+                      {task.text}
+                      {task.dotted ? ' • dotted' : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
     </div>

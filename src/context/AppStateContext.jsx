@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createListEntry } from '../utils/taskUtils'
 
 const STORAGE_KEY = 'rz-state-v1'
 
 const defaultState = {
   tasks: [],
+  listEntries: [],
   settings: {
     scanDirection: 'forward',
     guideMode: true,
@@ -76,10 +78,20 @@ function loadState() {
       ? { ...clone(defaultState.guide), ...parsed.guide }
       : clone(defaultState.guide)
 
+    // Migration: create list entries for existing tasks if they don't exist
+    let listEntries = parsed.listEntries || []
+    if (listEntries.length === 0 && tasks.length > 0) {
+      // Migrate: create list entries for all active tasks
+      listEntries = tasks
+        .filter(task => task.status === 'active')
+        .map(task => createListEntry(task.id))
+    }
+
     return {
       ...clone(defaultState),
       ...parsed,
       tasks,
+      listEntries,
       daily: parsed.daily || {},
       guide,
     }

@@ -1,4 +1,5 @@
 import { useAppState } from '../../context/AppStateContext'
+import { getActiveEntries } from '../../utils/taskUtils'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -15,13 +16,22 @@ function Action() {
   const { state, updateState } = useAppState()
 
   const archiveTask = (taskId) => {
-    const tasks = state.tasks.map(t => 
+    const tasks = state.tasks.map(t =>
       t.id === taskId ? { ...t, status: 'archived', archivedAt: Date.now() } : t
     )
-    updateState({ tasks })
+
+    // Remove list entries for archived task
+    const listEntries = state.listEntries.filter(e => e.taskId !== taskId)
+
+    updateState({ tasks, listEntries })
   }
 
-  const activeTasks = state.tasks.filter(t => t.status === 'active')
+  // Get unique active tasks from active list entries
+  const activeEntries = getActiveEntries(state.listEntries)
+  const activeTaskIds = [...new Set(activeEntries.map(e => e.taskId))]
+  const activeTasks = activeTaskIds
+    .map(taskId => state.tasks.find(t => t.id === taskId))
+    .filter(task => task && task.status === 'active')
 
   return (
     <div className="mode-panel">

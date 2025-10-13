@@ -1,4 +1,5 @@
 import { useAppState } from '../../context/AppStateContext'
+import { createListEntry, markEntryActioned } from '../../utils/taskUtils'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -15,10 +16,32 @@ function Action() {
   const { state, updateState } = useAppState()
 
   const completeTask = (taskId) => {
-    const tasks = state.tasks.map(t => 
+    const tasks = state.tasks.map(t =>
       t.id === taskId ? { ...t, status: 'completed', completedAt: Date.now(), dotted: false } : t
     )
-    updateState({ tasks })
+
+    // Mark all list entries for this task as actioned
+    const listEntries = state.listEntries.map(e =>
+      e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
+    )
+
+    updateState({ tasks, listEntries })
+  }
+
+  const reenterTask = (taskId) => {
+    const tasks = state.tasks.map(t =>
+      t.id === taskId ? { ...t, dotted: false, reentries: (t.reentries || 0) + 1 } : t
+    )
+
+    // Mark current list entry as actioned
+    const listEntries = state.listEntries.map(e =>
+      e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
+    )
+
+    // Create new list entry at the end
+    const newEntry = createListEntry(taskId)
+
+    updateState({ tasks, listEntries: [...listEntries, newEntry] })
   }
 
   const dottedTasks = state.tasks.filter(t => t.status === 'active' && t.dotted)
@@ -34,6 +57,7 @@ function Action() {
             <article key={task.id} className="task-card">
               <header><h3>{task.text}</h3></header>
               <footer>
+                <button onClick={() => reenterTask(task.id)} className="secondary">Re-enter</button>
                 <button onClick={() => completeTask(task.id)} className="primary">Complete</button>
               </footer>
             </article>
