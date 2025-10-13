@@ -1197,6 +1197,51 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   transition: all 0.2s ease;
 }
 
+.recent-entries {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.recent-entries h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recent-entries-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-entries-list li {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-entries-list li:hover {
+  background: rgba(0, 56, 255, 0.05);
+  border-color: var(--primary);
+  transform: translateX(2px);
+}
+
+.recent-entries-list li.current {
+  background: rgba(0, 56, 255, 0.1);
+  border-color: var(--primary);
+  border-width: 2px;
+  font-weight: 600;
+}
+
 .scan-btn.secondary:hover {
   border-color: var(--primary);
   background: rgba(0, 56, 255, 0.05);

@@ -47,11 +47,22 @@ function Action() {
       updateState({ tasks: state.tasks })
     }
 
+    // Add current entry to recent tasks
+    const listEntry = state.listEntries.find(e => e.taskId === taskId && e.status === 'active')
+    const recentTasks = [
+      ...scanSession.recentTasks.filter(rt => rt.entryId !== listEntry?.id),
+      { taskId, entryId: listEntry?.id, index: scanSession.index, dotted: shouldDot }
+    ].slice(-10) // Keep last 10 entries
+
     if (scanSession.index + 1 >= scanSession.order.length) {
       setScanSession(null)
     } else {
-      setScanSession({ ...scanSession, index: scanSession.index + 1 })
+      setScanSession({ ...scanSession, index: scanSession.index + 1, recentTasks })
     }
+  }
+
+  const jumpToEntry = (targetIndex) => {
+    setScanSession({ ...scanSession, index: targetIndex })
   }
 
   const activeEntries = getActiveEntries(state.listEntries)
@@ -72,6 +83,12 @@ function Action() {
 
   const currentTask = state.tasks.find(t => t.id === scanSession.order[scanSession.index])
 
+  // Get recent entries with task details
+  const recentEntries = scanSession.recentTasks.map(rt => ({
+    ...rt,
+    task: state.tasks.find(t => t.id === rt.taskId)
+  })).filter(rt => rt.task)
+
   return (
     <div className="mode-panel">
       <div className="scan-progress">
@@ -89,6 +106,26 @@ function Action() {
               <button onClick={() => advanceScan(true)} className="scan-btn primary">Dot</button>
             </div>
           </>
+        )}
+
+        {recentEntries.length > 0 && (
+          <div className="recent-entries">
+            <h4>Recently Scanned</h4>
+            <ul className="recent-entries-list">
+              {recentEntries.map((entry) => (
+                <li
+                  key={entry.entryId}
+                  className={entry.index === scanSession.index ? 'current' : ''}
+                  onClick={() => jumpToEntry(entry.index)}
+                >
+                  <span className="task-content">
+                    {entry.task.text}
+                    {entry.dotted && ' • dotted'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </div>
