@@ -1,10 +1,8 @@
-const CACHE_VERSION = "v4-react";
+const CACHE_VERSION = "v5-react";
 const CACHE_NAME = `rz-cache-${CACHE_VERSION}`;
 const OFFLINE_ASSETS = [
   "/re-zero/",
-  "/re-zero/index.html",
-  "/re-zero/manifest.json",
-  "/re-zero/icons/icon.svg"
+  "/re-zero/index.html"
   // Note: Vite assets are hashed and will be cached dynamically
 ];
 
