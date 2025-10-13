@@ -1235,11 +1235,15 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   transform: translateX(2px);
 }
 
-.recent-entries-list li.current {
-  background: rgba(0, 56, 255, 0.1);
+.recent-entries-list li.dotted {
+  background: rgba(0, 56, 255, 0.08);
   border-color: var(--primary);
-  border-width: 2px;
+  border-left-width: 4px;
   font-weight: 600;
+}
+
+.recent-entries-list li.dotted:hover {
+  background: rgba(0, 56, 255, 0.12);
 }
 
 .scan-btn.secondary:hover {

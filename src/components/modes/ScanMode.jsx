@@ -61,8 +61,24 @@ function Action() {
     }
   }
 
-  const jumpToEntry = (targetIndex) => {
-    setScanSession({ ...scanSession, index: targetIndex })
+  const toggleDotted = (taskId) => {
+    const task = state.tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    task.dotted = !task.dotted
+    if (task.dotted) {
+      task.lastDottedOn = new Date().toISOString().slice(0, 10)
+    } else {
+      task.lastDottedOn = null
+    }
+
+    // Update the recentTasks to reflect the new dotted state
+    const recentTasks = scanSession.recentTasks.map(rt =>
+      rt.taskId === taskId ? { ...rt, dotted: task.dotted } : rt
+    )
+
+    updateState({ tasks: state.tasks })
+    setScanSession({ ...scanSession, recentTasks })
   }
 
   const activeEntries = getActiveEntries(state.listEntries)
@@ -83,11 +99,11 @@ function Action() {
 
   const currentTask = state.tasks.find(t => t.id === scanSession.order[scanSession.index])
 
-  // Get recent entries with task details
+  // Get recent entries with task details, most recent first
   const recentEntries = scanSession.recentTasks.map(rt => ({
     ...rt,
     task: state.tasks.find(t => t.id === rt.taskId)
-  })).filter(rt => rt.task)
+  })).filter(rt => rt.task).reverse()
 
   return (
     <div className="mode-panel">
@@ -115,12 +131,11 @@ function Action() {
               {recentEntries.map((entry) => (
                 <li
                   key={entry.entryId}
-                  className={entry.index === scanSession.index ? 'current' : ''}
-                  onClick={() => jumpToEntry(entry.index)}
+                  className={entry.dotted ? 'dotted' : ''}
+                  onClick={() => toggleDotted(entry.taskId)}
                 >
                   <span className="task-content">
                     {entry.task.text}
-                    {entry.dotted && ' • dotted'}
                   </span>
                 </li>
               ))}
