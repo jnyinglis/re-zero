@@ -40,9 +40,6 @@ The app guides users through a repeating cycle of five modes. Each mode has spec
 Purpose: Capture everything that isn’t tied to a calendar/time.  
 - Add tasks quickly at any level (project, step, or meta-task).  
 - Re-enter recurring tasks when needed.  
-- Optional: assign resistance rating (0–10).  
-- Optional: attach additional task metadata (e.g., project code, billing category).  
-- Optional: mark the **level** of a task (Project, Step, Meta). Defaults to “Unspecified” unless user chooses or app infers.  
 - **App Guidance**: Prompts user to “get it out of your head” and ensures list stays uncategorized and flat.  
 
 ### 2. **Scanning Mode**
@@ -58,7 +55,10 @@ Purpose: Convert marked tasks into progress.
 - Work "little and often."
 - **Re-entry**: If the task is not complete, it is moved to the **end of the list** to reduce resistance and promote clumping.  
 - **App Guidance**: Reminds user that even 2 minutes of progress counts, and that re-entry is expected.  
-- **Time Tracking**: Option to start/stop a timer on a task to record time spent for productivity review or billing purposes.  
+- **Time Tracking**: Option to start/stop a timer on a task to record time spent for productivity review or billing purposes.
+- Optional: assign resistance rating (0–10).  
+- Optional: attach additional task metadata (e.g., project code, billing category).  
+- Optional: mark the **level** of a task (Project, Step, Meta). Defaults to “Unspecified” unless user chooses or app infers.    
 
 ### 4. **Maintenance Mode**  
 Purpose: Keep the list clean and relevant.  
