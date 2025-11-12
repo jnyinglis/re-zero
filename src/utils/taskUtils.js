@@ -6,14 +6,14 @@ export function createTask({ text, resistance, level, notes, parentId = null }) 
     resistance,
     level,
     notes,
-    dotted: false,
-    lastDottedOn: null,
+    marked: false,
+    lastMarkedOn: null,
     status: 'active',
     createdAt: now,
     updatedAt: now,
     touches: 0,
     scanCount: 0,
-    dottedCount: 0,
+    markedCount: 0,
     reentries: 0,
     completedAt: null,
     archivedAt: null,
@@ -63,26 +63,26 @@ export function touchTask(task, context, action = null) {
   return task
 }
 
-export function markTaskDotted(task, daily, bumpDaily) {
-  if (!task || task.dotted) return task
+export function markTaskMarked(task, daily, bumpDaily) {
+  if (!task || task.marked) return task
 
-  task.dotted = true
-  task.lastDottedOn = today()
-  task.dottedCount = (task.dottedCount || 0) + 1
-  bumpDaily(task.lastDottedOn, 'dots', 1)
+  task.marked = true
+  task.lastMarkedOn = today()
+  task.markedCount = (task.markedCount || 0) + 1
+  bumpDaily(task.lastMarkedOn, 'marks', 1)
 
   return task
 }
 
-export function clearTaskDot(task, daily, bumpDaily) {
-  if (!task || !task.dotted) return task
+export function clearTaskMark(task, daily, bumpDaily) {
+  if (!task || !task.marked) return task
 
-  const dottedDay = task.lastDottedOn
-  task.dotted = false
-  task.lastDottedOn = null
+  const markedDay = task.lastMarkedOn
+  task.marked = false
+  task.lastMarkedOn = null
 
-  if (dottedDay === today()) {
-    bumpDaily(today(), 'dots', -1)
+  if (markedDay === today()) {
+    bumpDaily(today(), 'marks', -1)
   }
 
   return task

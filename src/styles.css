@@ -1041,7 +1041,7 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
     border-radius: 6px;
   }
 
-  .recent-task-item.dotted {
+  .recent-task-item.marked {
     border-color: var(--primary);
     background: rgba(0, 56, 255, 0.05);
   }
@@ -1061,7 +1061,7 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
     cursor: pointer;
   }
 
-  .recent-task-toggle.dotted {
+  .recent-task-toggle.marked {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
@@ -1235,14 +1235,14 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   transform: translateX(2px);
 }
 
-.recent-entries-list li.dotted {
+.recent-entries-list li.marked {
   background: rgba(0, 56, 255, 0.08);
   border-color: var(--primary);
   border-left-width: 4px;
   font-weight: 600;
 }
 
-.recent-entries-list li.dotted:hover {
+.recent-entries-list li.marked:hover {
   background: rgba(0, 56, 255, 0.12);
 }
 
@@ -1288,7 +1288,7 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   border-radius: 8px;
 }
 
-.recent-task-item.dotted {
+.recent-task-item.marked {
   border-color: var(--primary);
   background: rgba(0, 56, 255, 0.05);
 }
@@ -1308,7 +1308,7 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   cursor: pointer;
 }
 
-.recent-task-toggle.dotted {
+.recent-task-toggle.marked {
   background: var(--primary);
   color: white;
   border-color: var(--primary);

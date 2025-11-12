@@ -67,7 +67,7 @@ function Action() {
                   <li key={entry.id} className={entry.status === 'actioned' ? 'actioned' : ''}>
                     <span className="task-content">
                       {task.text}
-                      {task.dotted ? ' • dotted' : ''}
+                      {task.marked ? ' • marked' : ''}
                     </span>
                   </li>
                 ))}

@@ -18,14 +18,14 @@ function Action() {
   const archivedTasks = state.tasks.filter(t => t.status === 'archived')
 
   const today = new Date().toISOString().slice(0, 10)
-  const dailyStats = state.daily[today] || { scans: 0, dots: 0, minutes: 0 }
+  const dailyStats = state.daily[today] || { scans: 0, marks: 0, minutes: 0 }
 
   return (
     <div className="mode-panel">
       <h2>Reflection</h2>
       <div className="reflection-insights">
         <div className="insight">Scans today: {dailyStats.scans || 0}</div>
-        <div className="insight">Tasks dotted today: {dailyStats.dots || 0}</div>
+        <div className="insight">Tasks marked today: {dailyStats.marks || 0}</div>
         <div className="insight">Minutes logged: {Math.round(dailyStats.minutes || 0)}</div>
       </div>
       <div className="reflection-lists">

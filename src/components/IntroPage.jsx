@@ -29,8 +29,8 @@ export default function IntroPage() {
           <h3>The 5-Step Process:</h3>
           <ol className="process-steps">
             <li><strong>List Building</strong> – Capture everything into one flat list</li>
-            <li><strong>Scanning</strong> – Pass through quickly and dot zero-resistance tasks</li>
-            <li><strong>Action</strong> – Take small steps on dotted items</li>
+            <li><strong>Scanning</strong> – Pass through quickly and mark zero-resistance tasks</li>
+            <li><strong>Action</strong> – Take small steps on marked items</li>
             <li><strong>Maintenance</strong> – Clear completed and irrelevant tasks</li>
             <li><strong>Reflection</strong> – Notice progress and patterns</li>
           </ol>
