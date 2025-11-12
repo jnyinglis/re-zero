@@ -155,3 +155,109 @@ export function formatDate(dateString) {
     day: 'numeric'
   })
 }
+
+export function startTaskTimer(task) {
+  const now = Date.now()
+
+  if (!task.timeLogs) {
+    task.timeLogs = []
+  }
+
+  // Check if there's already an active timer
+  const activeTimer = task.timeLogs.find(log => !log.endedAt)
+  if (activeTimer) {
+    return task // Already has an active timer
+  }
+
+  task.timeLogs.push({
+    id: randomId(),
+    startedAt: now,
+    endedAt: null,
+    duration: null,
+    notes: ''
+  })
+
+  task.updatedAt = now
+
+  return task
+}
+
+export function stopTaskTimer(task, notes = '') {
+  const now = Date.now()
+
+  if (!task.timeLogs) {
+    return task
+  }
+
+  const activeTimer = task.timeLogs.find(log => !log.endedAt)
+  if (!activeTimer) {
+    return task // No active timer
+  }
+
+  activeTimer.endedAt = now
+  activeTimer.duration = now - activeTimer.startedAt
+  activeTimer.notes = notes
+
+  task.updatedAt = now
+
+  return task
+}
+
+export function getCurrentSessionTime(task) {
+  if (!task.timeLogs) {
+    return 0
+  }
+
+  const activeTimer = task.timeLogs.find(log => !log.endedAt)
+  if (!activeTimer) {
+    return 0
+  }
+
+  return Date.now() - activeTimer.startedAt
+}
+
+export function getTotalTaskTime(task) {
+  if (!task.timeLogs || task.timeLogs.length === 0) {
+    return 0
+  }
+
+  return task.timeLogs.reduce((total, log) => {
+    if (log.duration) {
+      return total + log.duration
+    }
+    return total
+  }, 0)
+}
+
+export function formatDuration(milliseconds) {
+  const seconds = Math.floor(milliseconds / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+
+  if (hours > 0) {
+    const remainingMinutes = minutes % 60
+    return `${hours}h ${remainingMinutes}m`
+  } else if (minutes > 0) {
+    const remainingSeconds = seconds % 60
+    return `${minutes}m ${remainingSeconds}s`
+  } else {
+    return `${seconds}s`
+  }
+}
+
+export function hasActiveTimer(task) {
+  if (!task.timeLogs) {
+    return false
+  }
+  return task.timeLogs.some(log => !log.endedAt)
+}
+
+export function updateTaskMetadata(task, updates) {
+  const now = Date.now()
+
+  return {
+    ...task,
+    ...updates,
+    updatedAt: now
+  }
+}
