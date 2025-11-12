@@ -30,7 +30,7 @@ The app follows a **mode-based architecture** with five distinct modes that user
 
 1. **List Building Mode**: Task capture with minimal friction
 2. **Scanning Mode**: Full list scanning to identify zero-resistance tasks
-3. **Action Mode**: Taking action on dotted (zero-resistance) tasks
+3. **Action Mode**: Taking action on marked (zero-resistance) tasks
 4. **Maintenance Mode**: Cleaning and archiving tasks
 5. **Reflection Mode**: Reviewing progress and patterns
 
@@ -44,7 +44,7 @@ Each mode has an Instructions and Action component providing guided workflow.
 - Tasks have rich metadata: resistance levels, touch counts, time logs, re-entries
 
 ### Key Data Structures
-- **Task object** (`taskUtils.js`): Contains text, resistance, level, dotted status, timestamps, and activity tracking
+- **Task object** (`taskUtils.js`): Contains text, resistance, level, marked status, timestamps, and activity tracking
 - **State object** (`AppStateContext`): Central application state with tasks array and metadata
 - **Scan session**: Tracks current scanning progress stored in context
 

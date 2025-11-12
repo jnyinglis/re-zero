@@ -15,13 +15,13 @@ export default function Header() {
     ],
     scan: [
       "Choose a direction and stick with it. Scanning melts resistance.",
-      "Dot only what feels effortless right now—no forcing.",
+      "Mark only what feels effortless right now—no forcing.",
       "Quick passes beat deliberation. Trust the hunches.",
     ],
     action: [
       "Little and often wins. Even two minutes moves the needle.",
       "After you act, re-enter unfinished work at the end of the list.",
-      "Notice how dotted tasks invite you forward—flow with them.",
+      "Notice how marked tasks invite you forward—flow with them.",
     ],
     maintain: [
       "Listen for tasks that now say 'delete me'.",

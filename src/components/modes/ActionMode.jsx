@@ -6,7 +6,7 @@ function Instructions() {
   return (
     <div className="instructions-panel">
       <h2>Step 3: Action</h2>
-      <p className="step-intro">Follow the dots you created. Small moves count.</p>
+      <p className="step-intro">Follow the marks you created. Small moves count.</p>
       <button onClick={() => updateState({ guide: { ...state.guide, activeIndex: state.guide.activeIndex + 1 }})} className="start-step-btn">Start Taking Action</button>
     </div>
   )
@@ -17,7 +17,7 @@ function Action() {
 
   const completeTask = (taskId) => {
     const tasks = state.tasks.map(t =>
-      t.id === taskId ? { ...t, status: 'completed', completedAt: Date.now(), dotted: false } : t
+      t.id === taskId ? { ...t, status: 'completed', completedAt: Date.now(), marked: false } : t
     )
 
     // Mark all list entries for this task as actioned
@@ -30,7 +30,7 @@ function Action() {
 
   const reenterTask = (taskId) => {
     const tasks = state.tasks.map(t =>
-      t.id === taskId ? { ...t, dotted: false, reentries: (t.reentries || 0) + 1 } : t
+      t.id === taskId ? { ...t, marked: false, reentries: (t.reentries || 0) + 1 } : t
     )
 
     // Mark current list entry as actioned
@@ -44,16 +44,16 @@ function Action() {
     updateState({ tasks, listEntries: [...listEntries, newEntry] })
   }
 
-  const dottedTasks = state.tasks.filter(t => t.status === 'active' && t.dotted)
+  const markedTasks = state.tasks.filter(t => t.status === 'active' && t.marked)
 
   return (
     <div className="mode-panel">
-      <h2>Act on dotted tasks</h2>
+      <h2>Act on marked tasks</h2>
       <div className="task-list">
-        {dottedTasks.length === 0 ? (
-          <p>Dot tasks in Scanning mode to see them here.</p>
+        {markedTasks.length === 0 ? (
+          <p>Mark tasks in Scanning mode to see them here.</p>
         ) : (
-          dottedTasks.map(task => (
+          markedTasks.map(task => (
             <article key={task.id} className="task-card">
               <header><h3>{task.text}</h3></header>
               <footer>

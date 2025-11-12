@@ -45,17 +45,17 @@ Purpose: Capture everything that isn’t tied to a calendar/time.
 - Optional: mark the **level** of a task (Project, Step, Meta). Defaults to “Unspecified” unless user chooses or app infers.  
 - **App Guidance**: Prompts user to “get it out of your head” and ensures list stays uncategorized and flat.  
 
-### 2. **Scanning Mode**  
-Purpose: Reduce resistance and surface actionable tasks.  
-- Perform a **full scan** of the list (forward or backward, user-chosen).  
-- Dot tasks with zero resistance.  
-- Keep scan direction consistent.  
-- **App Guidance**: Enforces full scans, encourages quick intuitive passes, warns against switching direction frequently.  
+### 2. **Scanning Mode**
+Purpose: Reduce resistance and surface actionable tasks.
+- Perform a **full scan** of the list (forward or backward, user-chosen).
+- Mark tasks with zero resistance.
+- Keep scan direction consistent.
+- **App Guidance**: Enforces full scans, encourages quick intuitive passes, warns against switching direction frequently.
 
-### 3. **Action Mode**  
-Purpose: Convert dotted tasks into progress.  
-- Take **some action** (not necessarily completion) on each dotted task.  
-- Work “little and often.”  
+### 3. **Action Mode**
+Purpose: Convert marked tasks into progress.
+- Take **some action** (not necessarily completion) on each marked task.
+- Work "little and often."
 - **Re-entry**: If the task is not complete, it is moved to the **end of the list** to reduce resistance and promote clumping.  
 - **App Guidance**: Reminds user that even 2 minutes of progress counts, and that re-entry is expected.  
 - **Time Tracking**: Option to start/stop a timer on a task to record time spent for productivity review or billing purposes.  
@@ -89,11 +89,11 @@ Purpose: Notice progress and patterns.
 
 ## 6. User Stories  
 
-1. *As a user, I want to enter tasks quickly* without worrying about structure, categories, or deadlines.  
-2. *As a user, I want to scan my list in a consistent direction (forward or backward)* and mark tasks with zero resistance.  
-3. *As a user, I want the app to remind me that scanning lowers resistance*, so I don’t skip scans.  
-4. *As a user, I want to take small steps on each dotted task* so I feel constant movement.  
-5. *As a user, I want tasks to reappear at the end of the list if not completed* so resistance continues to drop.  
+1. *As a user, I want to enter tasks quickly* without worrying about structure, categories, or deadlines.
+2. *As a user, I want to scan my list in a consistent direction (forward or backward)* and mark tasks with zero resistance.
+3. *As a user, I want the app to remind me that scanning lowers resistance*, so I don't skip scans.
+4. *As a user, I want to take small steps on each marked task* so I feel constant movement.
+5. *As a user, I want tasks to reappear at the end of the list if not completed* so resistance continues to drop.
 6. *As a user, I want the app to nudge me to delete irrelevant tasks* when they naturally “stand out.”  
 7. *As a user, I want recurring tasks to re-enter automatically*, supporting the “clumping” principle.  
 8. *As a user, I want a minimal history of completed tasks* so I can see progress without clutter.  
@@ -106,11 +106,11 @@ Purpose: Notice progress and patterns.
 ## 7. Functional Requirements  
 
 ### Core Features
-- **Task List (Long List)**: One flat, uncategorized list.  
-- **Scanning Mode**: Choose forward or backward; app guides user to remain consistent.  
-- **Dotting Mechanism**: One-tap mark for “ready” tasks.  
-- **Action Prompting**: App encourages small, immediate steps.  
-- **Re-entry**: Incomplete tasks are automatically moved to the **end of the list** until finished or deleted.  
+- **Task List (Long List)**: One flat, uncategorized list.
+- **Scanning Mode**: Choose forward or backward; app guides user to remain consistent.
+- **Marking Mechanism**: One-tap mark for "ready" tasks.
+- **Action Prompting**: App encourages small, immediate steps.
+- **Re-entry**: Incomplete tasks are automatically moved to the **end of the list** until finished or deleted.
 
 ### Resistance & Progress Tracking
 - Optional resistance scale (0–10).  

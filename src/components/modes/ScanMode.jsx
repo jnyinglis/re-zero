@@ -1,17 +1,17 @@
 import { useAppState } from '../../context/AppStateContext'
-import { touchTask, markTaskDotted, getActiveEntries } from '../../utils/taskUtils'
+import { touchTask, markTaskMarked, getActiveEntries } from '../../utils/taskUtils'
 
 function Instructions() {
   const { state, updateState } = useAppState()
   return (
     <div className="instructions-panel">
       <h2>Step 2: Scanning</h2>
-      <p className="step-intro">Move through your list in one smooth pass. Dot anything that feels effortless.</p>
+      <p className="step-intro">Move through your list in one smooth pass. Mark anything that feels effortless.</p>
       <div className="instruction-details">
         <h3>What to do:</h3>
         <ul>
           <li>Pass through quickly - don't overthink</li>
-          <li>Dot tasks that feel effortless</li>
+          <li>Mark tasks that feel effortless</li>
           <li>Complete the full scan</li>
         </ul>
       </div>
@@ -33,16 +33,16 @@ function Action() {
     })
   }
 
-  const advanceScan = (shouldDot) => {
+  const advanceScan = (shouldMark) => {
     if (!scanSession) return
     const taskId = scanSession.order[scanSession.index]
     const task = state.tasks.find(t => t.id === taskId)
 
     if (task) {
-      touchTask(task, 'scan', shouldDot ? 'dot' : 'skip')
-      if (shouldDot) {
-        task.dotted = true
-        task.lastDottedOn = new Date().toISOString().slice(0, 10)
+      touchTask(task, 'scan', shouldMark ? 'mark' : 'skip')
+      if (shouldMark) {
+        task.marked = true
+        task.lastMarkedOn = new Date().toISOString().slice(0, 10)
       }
       updateState({ tasks: state.tasks })
     }
@@ -51,7 +51,7 @@ function Action() {
     const listEntry = state.listEntries.find(e => e.taskId === taskId && e.status === 'active')
     const recentTasks = [
       ...scanSession.recentTasks.filter(rt => rt.entryId !== listEntry?.id),
-      { taskId, entryId: listEntry?.id, index: scanSession.index, dotted: shouldDot }
+      { taskId, entryId: listEntry?.id, index: scanSession.index, marked: shouldMark }
     ].slice(-10) // Keep last 10 entries
 
     if (scanSession.index + 1 >= scanSession.order.length) {
@@ -61,20 +61,20 @@ function Action() {
     }
   }
 
-  const toggleDotted = (taskId) => {
+  const toggleMarked = (taskId) => {
     const task = state.tasks.find(t => t.id === taskId)
     if (!task) return
 
-    task.dotted = !task.dotted
-    if (task.dotted) {
-      task.lastDottedOn = new Date().toISOString().slice(0, 10)
+    task.marked = !task.marked
+    if (task.marked) {
+      task.lastMarkedOn = new Date().toISOString().slice(0, 10)
     } else {
-      task.lastDottedOn = null
+      task.lastMarkedOn = null
     }
 
-    // Update the recentTasks to reflect the new dotted state
+    // Update the recentTasks to reflect the new marked state
     const recentTasks = scanSession.recentTasks.map(rt =>
-      rt.taskId === taskId ? { ...rt, dotted: task.dotted } : rt
+      rt.taskId === taskId ? { ...rt, marked: task.marked } : rt
     )
 
     updateState({ tasks: state.tasks })
@@ -89,7 +89,7 @@ function Action() {
         <div className="scan-start">
           <div className="scan-instructions">
             <h2>Ready to scan?</h2>
-            <p>Go through each task quickly and dot what feels effortless.</p>
+            <p>Go through each task quickly and mark what feels effortless.</p>
           </div>
           <button onClick={startScan} className="big-scan-button" disabled={activeEntries.length === 0}>Begin</button>
         </div>
@@ -119,7 +119,7 @@ function Action() {
             </div>
             <div className="scan-actions">
               <button onClick={() => advanceScan(false)} className="scan-btn secondary">Skip</button>
-              <button onClick={() => advanceScan(true)} className="scan-btn primary">Dot</button>
+              <button onClick={() => advanceScan(true)} className="scan-btn primary">Mark</button>
             </div>
           </>
         )}
@@ -131,8 +131,8 @@ function Action() {
               {recentEntries.map((entry) => (
                 <li
                   key={entry.entryId}
-                  className={entry.dotted ? 'dotted' : ''}
-                  onClick={() => toggleDotted(entry.taskId)}
+                  className={entry.marked ? 'marked' : ''}
+                  onClick={() => toggleMarked(entry.taskId)}
                 >
                   <span className="task-content">
                     {entry.task.text}
