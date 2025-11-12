@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v5-react";
+const CACHE_VERSION = "BUILD_VERSION_PLACEHOLDER"; // Auto-injected during build
 const CACHE_NAME = `rz-cache-${CACHE_VERSION}`;
 const OFFLINE_ASSETS = [
   "/re-zero/",
