@@ -385,5 +385,5 @@ export function getVisibleTasks(tasks) {
  * @returns {boolean}
  */
 export function isParentTask(task) {
-  return task.childIds && task.childIds.length > 0
+  return !!(task.childIds && task.childIds.length > 0)
 }
