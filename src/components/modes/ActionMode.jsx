@@ -10,9 +10,13 @@ import {
   formatDuration,
   hasActiveTimer,
   updateTaskMetadata,
-  splitTask
+  splitTask,
+  toggleCollapse,
+  getVisibleTasks,
+  areAllChildrenComplete
 } from '../../utils/taskUtils'
 import SplitTaskPanel from '../SplitTaskPanel'
+import TaskCard from '../TaskCard'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -401,36 +405,56 @@ function Action() {
     setSelectedTaskId(null)
   }
 
+  const handleToggleCollapse = (taskId) => {
+    const tasks = state.tasks.map(t =>
+      t.id === taskId ? toggleCollapse(t) : t
+    )
+    updateState({ tasks })
+  }
+
+  const handleCompleteParent = (taskId) => {
+    completeTask(taskId)
+  }
+
   const markedTasks = state.tasks.filter(t => t.status === 'active' && t.marked)
+  const visibleMarkedTasks = getVisibleTasks(markedTasks)
   const selectedTask = selectedTaskId ? state.tasks.find(t => t.id === selectedTaskId) : null
 
   return (
     <div className="mode-panel">
       <h2>Act on marked tasks</h2>
       <div className="task-list">
-        {markedTasks.length === 0 ? (
+        {visibleMarkedTasks.length === 0 ? (
           <p>Mark tasks in Scanning mode to see them here.</p>
         ) : (
-          markedTasks.map(task => (
-            <article key={task.id} className="task-card">
-              <header>
-                <h3>{task.text}</h3>
-                {hasActiveTimer(task) && (
-                  <span className="timer-indicator" title="Timer running">⏱️</span>
-                )}
-              </header>
-              <footer>
-                <button onClick={() => setSelectedTaskId(task.id)} className="secondary">
-                  More
-                </button>
-                <button onClick={() => reenterTask(task.id)} className="secondary">
-                  Re-enter
-                </button>
-                <button onClick={() => completeTask(task.id)} className="primary">
-                  Complete
-                </button>
-              </footer>
-            </article>
+          visibleMarkedTasks.map(task => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              tasks={state.tasks}
+              onToggleCollapse={handleToggleCollapse}
+              onCompleteParent={handleCompleteParent}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ margin: 0, flex: 1 }}>{task.text}</h3>
+                  {hasActiveTimer(task) && (
+                    <span className="timer-indicator" title="Timer running">⏱️</span>
+                  )}
+                </header>
+                <footer style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => setSelectedTaskId(task.id)} className="secondary">
+                    More
+                  </button>
+                  <button onClick={() => reenterTask(task.id)} className="secondary">
+                    Re-enter
+                  </button>
+                  <button onClick={() => completeTask(task.id)} className="primary">
+                    Complete
+                  </button>
+                </footer>
+              </div>
+            </TaskCard>
           ))
         )}
       </div>
