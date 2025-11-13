@@ -72,6 +72,7 @@ function loadState() {
     const tasks = (parsed.tasks || []).map(task => ({
       ...task,
       lastDottedOn: task.lastDottedOn || null,
+      tags: task.tags || [],
     }))
 
     const guide = parsed.guide

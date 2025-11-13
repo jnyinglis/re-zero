@@ -711,6 +711,129 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   border-top: 1px solid var(--border);
 }
 
+/* Tag Management */
+.tag-input-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.tag-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.tag-input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.add-tag-btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.add-tag-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 56, 255, 0.2);
+}
+
+.add-tag-btn:active {
+  transform: translateY(0);
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(0, 56, 255, 0.08);
+  color: var(--primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.tag-badge:hover {
+  background: rgba(0, 56, 255, 0.12);
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.remove-tag-btn:hover {
+  background: rgba(0, 56, 255, 0.15);
+}
+
+.remove-tag-btn:active {
+  background: rgba(0, 56, 255, 0.25);
+}
+
+/* Small tag badges for list and scan views */
+.tag-badge-small {
+  display: inline-block;
+  background: rgba(0, 56, 255, 0.08);
+  color: var(--primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.35rem;
+}
+
+.task-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.task-list-items .task-tags {
+  margin-left: 0.5rem;
+}
+
+.current-task .task-tags {
+  margin-top: 0.5rem;
+}
+
+.recent-entries-list .task-tags {
+  margin-left: 0.5rem;
+  font-size: 0.85em;
+}
+
 /* Activity Metrics */
 .activity-metrics {
   background: rgba(3, 168, 124, 0.04);
