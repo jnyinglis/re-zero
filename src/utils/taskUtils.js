@@ -311,7 +311,7 @@ export function splitTask(parentTask, newTaskTexts, options = {}) {
     // Parent becomes a container
     updatedParent.childIds = childIds
     updatedParent.level = 'project'
-    updatedParent.marked = false // Unmark parent when split
+    // Keep parent marked and active - it completes when all children complete
   } else if (mode === 'archive') {
     // Archive the parent
     updatedParent.status = 'archived'

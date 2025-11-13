@@ -289,6 +289,7 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate, onSpli
 function Action() {
   const { state, updateState } = useAppState()
   const [selectedTaskId, setSelectedTaskId] = useState(null)
+  const [splitTaskId, setSplitTaskId] = useState(null)
 
   const completeTask = (taskId) => {
     const tasks = state.tasks.map(t =>
@@ -414,10 +415,8 @@ function Action() {
         e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
       )
     } else if (splitMode === 'keep') {
-      // Keep parent entry but mark as actioned
-      updatedListEntries = state.listEntries.map(e =>
-        e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
-      )
+      // Keep parent entry active - parent completes when all children complete
+      // Don't mark parent as actioned, it stays in the action list
     }
 
     // Add list entries for child tasks
@@ -477,9 +476,16 @@ function Action() {
                     <span className="timer-indicator" title="Timer running">⏱️</span>
                   )}
                 </header>
-                <footer style={{ display: 'flex', gap: '0.5rem' }}>
+                <footer style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button onClick={() => setSelectedTaskId(task.id)} className="secondary">
                     More
+                  </button>
+                  <button
+                    onClick={() => setSplitTaskId(task.id)}
+                    className="secondary"
+                    title="Split into smaller tasks"
+                  >
+                    ✂️ Split
                   </button>
                   <button onClick={() => reenterTask(task.id)} className="secondary">
                     Re-enter
@@ -502,6 +508,17 @@ function Action() {
           onReenter={reenterTask}
           onUpdate={handleTaskUpdate}
           onSplit={handleSplitTask}
+        />
+      )}
+
+      {splitTaskId && !selectedTaskId && (
+        <SplitTaskPanel
+          task={state.tasks.find(t => t.id === splitTaskId)}
+          onConfirm={(newTaskTexts, splitMode, inheritNotes) => {
+            handleSplitTask(splitTaskId, newTaskTexts, splitMode, inheritNotes)
+            setSplitTaskId(null)
+          }}
+          onCancel={() => setSplitTaskId(null)}
         />
       )}
     </div>
