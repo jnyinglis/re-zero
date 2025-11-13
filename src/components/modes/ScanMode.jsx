@@ -115,7 +115,18 @@ function Action() {
           <>
             <div className="current-task">
               <h3>{currentTask.text}</h3>
-              <div className="task-meta">{currentTask.level}</div>
+              <div className="task-meta">
+                {currentTask.level}
+                {currentTask.tags && currentTask.tags.length > 0 && (
+                  <span className="task-tags">
+                    {currentTask.tags.map(tag => (
+                      <span key={tag} className="tag-badge-small">
+                        {tag}
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="scan-actions">
               <button onClick={() => advanceScan(false)} className="scan-btn secondary">Skip</button>
@@ -137,6 +148,15 @@ function Action() {
                   <span className="task-content">
                     {entry.task.text}
                   </span>
+                  {entry.task.tags && entry.task.tags.length > 0 && (
+                    <span className="task-tags">
+                      {entry.task.tags.map(tag => (
+                        <span key={tag} className="tag-badge-small">
+                          {tag}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

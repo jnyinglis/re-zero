@@ -6,6 +6,7 @@ export function createTask({ text, resistance, level, notes, parentId = null }) 
     resistance,
     level,
     notes,
+    tags: [],
     marked: false,
     lastMarkedOn: null,
     status: 'active',

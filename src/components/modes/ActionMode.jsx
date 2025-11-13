@@ -26,6 +26,7 @@ function Instructions() {
 function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
   const [editedTask, setEditedTask] = useState(task)
   const [timerDisplay, setTimerDisplay] = useState(0)
+  const [tagInput, setTagInput] = useState('')
 
   useEffect(() => {
     if (hasActiveTimer(editedTask)) {
@@ -52,6 +53,30 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
 
   const handleStopTimer = () => {
     const updated = stopTaskTimer({ ...editedTask })
+    setEditedTask(updated)
+    onUpdate(updated)
+  }
+
+  const handleAddTag = () => {
+    const trimmedTag = tagInput.trim()
+    if (!trimmedTag) return
+
+    const tags = editedTask.tags || []
+    if (tags.includes(trimmedTag)) {
+      // Tag already exists, don't add duplicate
+      setTagInput('')
+      return
+    }
+
+    const updated = { ...editedTask, tags: [...tags, trimmedTag] }
+    setEditedTask(updated)
+    onUpdate(updated)
+    setTagInput('')
+  }
+
+  const handleRemoveTag = (tagToRemove) => {
+    const tags = (editedTask.tags || []).filter(tag => tag !== tagToRemove)
+    const updated = { ...editedTask, tags }
     setEditedTask(updated)
     onUpdate(updated)
   }
@@ -117,6 +142,41 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
               <option value="step">Step</option>
               <option value="meta">Meta</option>
             </select>
+
+            <label htmlFor="tag-input">
+              Tags
+            </label>
+            <div className="tag-input-container">
+              <input
+                id="tag-input"
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                placeholder="Add tag (e.g., project name, context)"
+                className="tag-input"
+              />
+              <button onClick={handleAddTag} className="add-tag-btn" type="button">
+                Add
+              </button>
+            </div>
+            {editedTask.tags && editedTask.tags.length > 0 && (
+              <div className="tags-display">
+                {editedTask.tags.map(tag => (
+                  <span key={tag} className="tag-badge">
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      className="remove-tag-btn"
+                      type="button"
+                      aria-label={`Remove ${tag} tag`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
 
             <label htmlFor="task-notes">
               Notes

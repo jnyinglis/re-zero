@@ -69,6 +69,15 @@ function Action() {
                       {task.text}
                       {task.marked ? ' • marked' : ''}
                     </span>
+                    {task.tags && task.tags.length > 0 && (
+                      <span className="task-tags">
+                        {task.tags.map(tag => (
+                          <span key={tag} className="tag-badge-small">
+                            {tag}
+                          </span>
+                        ))}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
