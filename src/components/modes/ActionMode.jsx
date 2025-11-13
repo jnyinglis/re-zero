@@ -15,6 +15,7 @@ import {
   getVisibleTasks,
   areAllChildrenComplete
 } from '../../utils/taskUtils'
+import { addMinutesToDaily } from '../../utils/dailyStats'
 import SplitTaskPanel from '../SplitTaskPanel'
 import TaskCard from '../TaskCard'
 
@@ -294,10 +295,17 @@ function Action() {
       t.id === taskId ? { ...t, status: 'completed', completedAt: Date.now(), marked: false } : t
     )
 
+    let updatedDaily = state.daily
     // Stop any active timer
     const taskIndex = tasks.findIndex(t => t.id === taskId)
     if (taskIndex !== -1 && hasActiveTimer(tasks[taskIndex])) {
+      const beforeStop = tasks[taskIndex]
+      const currentSessionTime = getCurrentSessionTime(beforeStop)
       tasks[taskIndex] = stopTaskTimer(tasks[taskIndex])
+
+      // Add minutes to daily stats
+      const minutes = currentSessionTime / (1000 * 60) // Convert ms to minutes
+      updatedDaily = addMinutesToDaily(state.daily, minutes)
     }
 
     // Mark all list entries for this task as actioned
@@ -305,7 +313,7 @@ function Action() {
       e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
     )
 
-    updateState({ tasks, listEntries })
+    updateState({ tasks, listEntries, daily: updatedDaily })
     setSelectedTaskId(null)
   }
 
@@ -314,10 +322,17 @@ function Action() {
       t.id === taskId ? { ...t, marked: false, reentries: (t.reentries || 0) + 1 } : t
     )
 
+    let updatedDaily = state.daily
     // Stop any active timer
     const taskIndex = tasks.findIndex(t => t.id === taskId)
     if (taskIndex !== -1 && hasActiveTimer(tasks[taskIndex])) {
+      const beforeStop = tasks[taskIndex]
+      const currentSessionTime = getCurrentSessionTime(beforeStop)
       tasks[taskIndex] = stopTaskTimer(tasks[taskIndex])
+
+      // Add minutes to daily stats
+      const minutes = currentSessionTime / (1000 * 60) // Convert ms to minutes
+      updatedDaily = addMinutesToDaily(state.daily, minutes)
     }
 
     // Mark current list entry as actioned
@@ -328,15 +343,35 @@ function Action() {
     // Create new list entry at the end
     const newEntry = createListEntry(taskId)
 
-    updateState({ tasks, listEntries: [...listEntries, newEntry] })
+    updateState({ tasks, listEntries: [...listEntries, newEntry], daily: updatedDaily })
     setSelectedTaskId(null)
   }
 
   const handleTaskUpdate = (updatedTask) => {
+    // Check if a timer was just stopped by looking at the most recent timeLog
+    const originalTask = state.tasks.find(t => t.id === updatedTask.id)
+    let updatedDaily = state.daily
+
+    if (originalTask && originalTask.timeLogs && updatedTask.timeLogs) {
+      // Find if there's a newly completed time log
+      const newlyCompletedLog = updatedTask.timeLogs.find(
+        log => log.endedAt && log.duration &&
+        !originalTask.timeLogs.some(
+          oldLog => oldLog.startedAt === log.startedAt && oldLog.endedAt
+        )
+      )
+
+      if (newlyCompletedLog) {
+        // Add minutes to daily stats
+        const minutes = newlyCompletedLog.duration / (1000 * 60) // Convert ms to minutes
+        updatedDaily = addMinutesToDaily(state.daily, minutes)
+      }
+    }
+
     const tasks = state.tasks.map(t =>
       t.id === updatedTask.id ? updatedTask : t
     )
-    updateState({ tasks })
+    updateState({ tasks, daily: updatedDaily })
   }
 
   const handleSplitTask = (taskId, newTaskTexts, splitMode, inheritNotes) => {

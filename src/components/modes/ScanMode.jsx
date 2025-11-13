@@ -1,5 +1,6 @@
 import { useAppState } from '../../context/AppStateContext'
 import { touchTask, markTaskMarked, getActiveEntries } from '../../utils/taskUtils'
+import { incrementDailyStat } from '../../utils/dailyStats'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -31,6 +32,10 @@ function Action() {
       startedAt: Date.now(),
       recentTasks: []
     })
+
+    // Increment daily scan count
+    const updatedDaily = incrementDailyStat(state.daily, 'scans')
+    updateState({ daily: updatedDaily })
   }
 
   const advanceScan = (shouldMark) => {
@@ -38,13 +43,16 @@ function Action() {
     const taskId = scanSession.order[scanSession.index]
     const task = state.tasks.find(t => t.id === taskId)
 
+    let updatedDaily = state.daily
     if (task) {
       touchTask(task, 'scan', shouldMark ? 'mark' : 'skip')
       if (shouldMark) {
         task.marked = true
         task.lastMarkedOn = new Date().toISOString().slice(0, 10)
+        // Increment daily marks count
+        updatedDaily = incrementDailyStat(state.daily, 'marks')
       }
-      updateState({ tasks: state.tasks })
+      updateState({ tasks: state.tasks, daily: updatedDaily })
     }
 
     // Add current entry to recent tasks
@@ -65,11 +73,26 @@ function Action() {
     const task = state.tasks.find(t => t.id === taskId)
     if (!task) return
 
+    const wasMarked = task.marked
     task.marked = !task.marked
+
+    let updatedDaily = state.daily
     if (task.marked) {
       task.lastMarkedOn = new Date().toISOString().slice(0, 10)
+      // Increment marks when marking
+      updatedDaily = incrementDailyStat(state.daily, 'marks')
     } else {
       task.lastMarkedOn = null
+      // Decrement marks when unmarking
+      const today = new Date().toISOString().slice(0, 10)
+      const currentStats = state.daily[today] || { scans: 0, marks: 0, minutes: 0 }
+      updatedDaily = {
+        ...state.daily,
+        [today]: {
+          ...currentStats,
+          marks: Math.max(0, (currentStats.marks || 0) - 1)
+        }
+      }
     }
 
     // Update the recentTasks to reflect the new marked state
@@ -77,7 +100,7 @@ function Action() {
       rt.taskId === taskId ? { ...rt, marked: task.marked } : rt
     )
 
-    updateState({ tasks: state.tasks })
+    updateState({ tasks: state.tasks, daily: updatedDaily })
     setScanSession({ ...scanSession, recentTasks })
   }
 
