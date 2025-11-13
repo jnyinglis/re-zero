@@ -109,10 +109,8 @@ The split-task workflow must be nearly instantaneous, accessible from any mode w
 
 **Triggering a Split**:
 A task can be split from:
-- Task detail view
-- Inline task row
-- Scan mode
-- Execution screen
+- List Building
+- Action Mode
 
 Primary Trigger: A "Split Task" action (icon or gesture, e.g., swipe downwards or long-press → "Split").
 
