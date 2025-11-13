@@ -83,13 +83,94 @@ Purpose: Notice progress and patterns.
 
 ---
 
-## 5. Task Levels & Splitting  
-- Tasks can exist at **any level**: Project (broad initiative), Step (concrete action), or Meta (thinking/review).  
-- By default, tasks are added without requiring a level.  
-- **Optional indication**: User can mark a task’s level if desired.  
-- **Splitting**: If a task is split into smaller tasks, the original task remains in the list by default and is automatically marked as a **Project**.  
-- Subtasks created from it can be **optionally linked** to the project for reporting, analytics, and billing.  
-- The user can later choose to delete the project entry when it feels resolved or redundant.  
+## 5. Task Levels & Splitting
+
+### 5.1 Task Levels
+- Tasks can exist at **any level**: Project (broad initiative), Step (concrete action), or Meta (thinking/review).
+- By default, tasks are added without requiring a level.
+- **Optional indication**: User can mark a task's level if desired.
+
+### 5.2 Task Splitting
+
+**Purpose**: Task Splitting allows a user to break a task into smaller, actionable fragments at the moment of execution, without losing momentum or needing to navigate to a different screen. The feature supports ReZero's core principle: never let a task create resistance because it feels too big, unclear, or intimidating.
+
+The split-task workflow must be nearly instantaneous, accessible from any mode where a task is visible, and maintain the original task's context, history, and metadata.
+
+**Goals**:
+1. Reduce friction when a user encounters a task that is too large to tackle.
+2. Preserve the user's flow during scanning, deciding, or working.
+3. Make splitting intuitive and low-cognitive-load, not a separate planning operation.
+4. Keep the task list clean and linear, avoiding nested sub-projects unless explicitly chosen.
+
+**Non-Goals**:
+- Do not turn tasks into full project hierarchies by default.
+- Do not introduce complex project management UI patterns (Gantt, boards, etc.).
+- Do not require the user to pre-define all steps of a split task.
+
+**Triggering a Split**:
+A task can be split from:
+- Task detail view
+- Inline task row
+- Scan mode
+- Execution screen
+
+Primary Trigger: A "Split Task" action (icon or gesture, e.g., swipe downwards or long-press → "Split").
+
+**Split Editor Panel**:
+A lightweight editor slides up showing:
+- Task title at the top ("Splitting: [task name]")
+- A list of empty lines, ready for immediate typing
+- Keyboard automatically open
+
+Rules:
+- Each line becomes a new task
+- Pressing "Return" creates the next line
+- Blank lines are ignored
+
+**Confirming Split**:
+Action button: "Create Tasks"
+
+Options presented (remembered per user preference):
+1. Replace original task with the split items
+2. Keep original as a parent
+3. Archive original task after splitting
+
+Default: Replace (most ReZero-aligned: keep the list lean).
+
+**Metadata Inheritance**:
+Each split task inherits:
+- tags
+- project/area
+- priority weighting (if used)
+- scheduling metadata (if any)
+- notes (optionally copied or left with the parent only)
+
+**Ordering**:
+Split tasks appear immediately below the original task's position, maintaining chronological and spatial continuity.
+
+**Parent Mode (Optional)**:
+If user chooses to keep the original task:
+- It becomes a container card (lightweight, not a project)
+- Completion requires all split tasks to be done
+- It collapses/expands like a simple outline
+- Container cards are visually distinct but minimal
+
+**Completion Behavior**:
+- When all split items are complete:
+  - If parent exists, offer an automatic "Complete parent" prompt.
+  - If parent does not exist, no extra action is needed.
+
+**Editing a Split Task**:
+Split tasks behave like normal tasks. There is no structural penalty for editing, moving, or merging them later.
+
+**UX/UI Principles**:
+- Speed first: splitting must take <2 seconds to initiate.
+- No heavy dialogs.
+- Minimal typing friction.
+- No modal traps.
+- Inline animation that shows the original task "bursting" into smaller items to reinforce mental context.
+- Subtle indentation for parent mode (if enabled).
+- Keyboard focus always defaults to the first new split item line.
 
 ---
 
@@ -107,7 +188,11 @@ Purpose: Notice progress and patterns.
 10. *As a user, I want to track time spent on tasks for billing and productivity review*, with data attached to each task.
 11. *As a user, I want to split big tasks into smaller ones while still keeping the original project entry*, so I don't lose sight of the big picture.
 12. *As a user, I want to add tags to tasks during Action Mode* (e.g., project names, contexts) so I can identify related tasks at a glance.
-13. *As a user, I want to see tags displayed when building my list and scanning* so I have context about which project or area each task relates to.  
+13. *As a user, I want to see tags displayed when building my list and scanning* so I have context about which project or area each task relates to.
+14. *As a user, when a task feels too large to start*, I want to instantly split it into smaller pieces, so I can make progress without spending time planning.
+15. *As a user, when I start a task and discover it requires more steps*, I want to split it mid-flow, so I can capture the steps without breaking focus.
+16. *As a user, when scanning a long list*, I want to split a task without navigating away, so the scan rhythm remains uninterrupted.
+17. *As a user, I want the option for the original task to be replaced with its split items, or kept as a parent/story card with child items*, so I can choose the structure that suits the task.
 
 ---
 
@@ -139,10 +224,21 @@ Purpose: Notice progress and patterns.
 - Reports on time usage per task, tag, or date range.  
 
 ### Task Levels & Linking
-- Tasks may be optionally marked as Project, Step, or Meta.  
-- If a task is **split into smaller tasks**, the original becomes a Project-level entry.  
-- Subtasks can be optionally linked back to the project for aggregation (time, progress).  
-- Linking is lightweight and does not create hierarchy in the list view — the list remains flat.  
+- Tasks may be optionally marked as Project, Step, or Meta.
+- If a task is **split into smaller tasks**, the original becomes a Project-level entry.
+- Subtasks can be optionally linked back to the project for aggregation (time, progress).
+- Linking is lightweight and does not create hierarchy in the list view — the list remains flat.
+
+### Task Splitting
+- **Quick access**: Split action available from task detail view, inline task rows, scan mode, and execution screen.
+- **Split editor**: Lightweight panel with task title, multi-line input for new tasks, auto-open keyboard.
+- **Immediate creation**: Each line creates a new task; blank lines ignored.
+- **Split options**: User can choose to replace original, keep as parent, or archive original (preference remembered).
+- **Metadata inheritance**: Split tasks inherit tags, project/area, priority, scheduling, and optionally notes.
+- **Position preservation**: Split tasks appear immediately below original task position.
+- **Parent mode**: Optional container cards that collapse/expand, require all children complete.
+- **Auto-completion**: When all split items complete, prompt to complete parent (if exists).
+- **No penalties**: Split tasks behave like normal tasks with full editing capabilities.
 
 ### Guidance Layer
 - Contextual prompts embedded in each mode.  
@@ -195,4 +291,7 @@ Purpose: Notice progress and patterns.
 - Time tracking must remain optional to avoid adding friction for users uninterested in it.
 - Linking projects and subtasks must remain optional to avoid hierarchical complexity.
 - **Tags could encourage over-categorization**: Users might create too many tags or spend excessive time organizing. Tags must remain lightweight and optional to avoid this pitfall.
-- **Tag visibility must not clutter the interface**: Tag display should be subtle and not distract from the core scanning experience.  
+- **Tag visibility must not clutter the interface**: Tag display should be subtle and not distract from the core scanning experience.
+- **Task splitting could encourage over-planning**: Users might split tasks excessively instead of taking action. The split UI must remain fast and low-friction to avoid this.
+- **Parent mode could create hierarchy bloat**: If not carefully designed, parent/child relationships could undermine the flat list philosophy. Parent mode must remain optional and minimal.
+- **Split workflow interruption**: If splitting takes too long or requires too many decisions, it could break the user's flow and increase resistance instead of reducing it.
