@@ -22,6 +22,8 @@ export function createTask({ text, resistance, level, notes, parentId = null }) 
     touchLogs: [],
     parentId,
     subtasks: [],
+    childIds: [],
+    isCollapsed: false,
   }
 }
 
@@ -261,4 +263,127 @@ export function updateTaskMetadata(task, updates) {
     ...updates,
     updatedAt: now
   }
+}
+
+/**
+ * Split a task into multiple smaller tasks
+ * @param {object} parentTask - The task to split
+ * @param {string[]} newTaskTexts - Array of text for new tasks (one per line)
+ * @param {object} options - Split options
+ * @param {string} options.mode - 'replace', 'keep', or 'archive'
+ * @param {boolean} options.inheritNotes - Whether to copy notes to child tasks
+ * @returns {object} - { parentTask, childTasks }
+ */
+export function splitTask(parentTask, newTaskTexts, options = {}) {
+  const { mode = 'replace', inheritNotes = false } = options
+  const now = Date.now()
+
+  // Filter out empty lines
+  const validTexts = newTaskTexts.filter(text => text.trim().length > 0)
+
+  if (validTexts.length === 0) {
+    return { parentTask, childTasks: [] }
+  }
+
+  // Create child tasks with inherited metadata
+  const childTasks = validTexts.map(text => {
+    const childTask = createTask({
+      text: text.trim(),
+      resistance: parentTask.resistance,
+      level: parentTask.level === 'project' ? 'step' : parentTask.level,
+      notes: inheritNotes ? parentTask.notes : '',
+      parentId: mode === 'keep' ? parentTask.id : null
+    })
+
+    // Inherit tags
+    childTask.tags = [...(parentTask.tags || [])]
+
+    return childTask
+  })
+
+  // Get child IDs
+  const childIds = childTasks.map(t => t.id)
+
+  // Update parent based on mode
+  let updatedParent = { ...parentTask, updatedAt: now }
+
+  if (mode === 'keep') {
+    // Parent becomes a container
+    updatedParent.childIds = childIds
+    updatedParent.level = 'project'
+    updatedParent.marked = false // Unmark parent when split
+  } else if (mode === 'archive') {
+    // Archive the parent
+    updatedParent.status = 'archived'
+    updatedParent.archivedAt = now
+  } else if (mode === 'replace') {
+    // Parent will be removed/replaced - mark for deletion
+    updatedParent.status = 'replaced'
+    updatedParent.archivedAt = now
+  }
+
+  return { parentTask: updatedParent, childTasks }
+}
+
+/**
+ * Check if all child tasks of a parent are complete
+ * @param {string} parentId - The parent task ID
+ * @param {object[]} tasks - Array of all tasks
+ * @returns {boolean} - True if all children are complete
+ */
+export function areAllChildrenComplete(parentId, tasks) {
+  const parent = tasks.find(t => t.id === parentId)
+  if (!parent || !parent.childIds || parent.childIds.length === 0) {
+    return false
+  }
+
+  const children = tasks.filter(t => parent.childIds.includes(t.id))
+  return children.length > 0 && children.every(child => child.status === 'completed')
+}
+
+/**
+ * Toggle collapse state of a parent task
+ * @param {object} task - The parent task
+ * @returns {object} - Updated task
+ */
+export function toggleCollapse(task) {
+  if (!task.childIds || task.childIds.length === 0) {
+    return task
+  }
+
+  return {
+    ...task,
+    isCollapsed: !task.isCollapsed,
+    updatedAt: Date.now()
+  }
+}
+
+/**
+ * Get visible tasks (filtering out collapsed children)
+ * @param {object[]} tasks - Array of all tasks
+ * @returns {object[]} - Filtered tasks
+ */
+export function getVisibleTasks(tasks) {
+  const collapsedParents = new Set(
+    tasks
+      .filter(t => t.isCollapsed && t.childIds && t.childIds.length > 0)
+      .map(t => t.id)
+  )
+
+  return tasks.filter(task => {
+    // Hide if parent is collapsed
+    if (task.parentId && collapsedParents.has(task.parentId)) {
+      return false
+    }
+    return true
+  })
+}
+
+/**
+ * Check if a task is a parent (has children)
+ * @param {object} task - The task to check
+ * @returns {boolean}
+ */
+export function isParentTask(task) {
+  return !!(task.childIds && task.childIds.length > 0)
 }

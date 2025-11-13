@@ -9,8 +9,14 @@ import {
   getTotalTaskTime,
   formatDuration,
   hasActiveTimer,
-  updateTaskMetadata
+  updateTaskMetadata,
+  splitTask,
+  toggleCollapse,
+  getVisibleTasks,
+  areAllChildrenComplete
 } from '../../utils/taskUtils'
+import SplitTaskPanel from '../SplitTaskPanel'
+import TaskCard from '../TaskCard'
 
 function Instructions() {
   const { state, updateState } = useAppState()
@@ -23,10 +29,11 @@ function Instructions() {
   )
 }
 
-function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
+function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate, onSplit }) {
   const [editedTask, setEditedTask] = useState(task)
   const [timerDisplay, setTimerDisplay] = useState(0)
   const [tagInput, setTagInput] = useState('')
+  const [showSplitPanel, setShowSplitPanel] = useState(false)
 
   useEffect(() => {
     if (hasActiveTimer(editedTask)) {
@@ -79,6 +86,12 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
     const updated = { ...editedTask, tags }
     setEditedTask(updated)
     onUpdate(updated)
+  }
+
+  const handleSplitConfirm = (newTaskTexts, splitMode, inheritNotes) => {
+    onSplit(editedTask.id, newTaskTexts, splitMode, inheritNotes)
+    setShowSplitPanel(false)
+    onClose() // Close the detail view after splitting
   }
 
   const totalTime = getTotalTaskTime(editedTask)
@@ -249,6 +262,9 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
 
         {/* Action Buttons */}
         <div className="task-detail-footer">
+          <button onClick={() => setShowSplitPanel(true)} className="secondary">
+            Split Task
+          </button>
           <button onClick={() => onReenter(editedTask.id)} className="secondary">
             Re-enter Task
           </button>
@@ -257,6 +273,14 @@ function TaskDetailView({ task, onClose, onComplete, onReenter, onUpdate }) {
           </button>
         </div>
       </div>
+
+      {showSplitPanel && (
+        <SplitTaskPanel
+          task={editedTask}
+          onConfirm={handleSplitConfirm}
+          onCancel={() => setShowSplitPanel(false)}
+        />
+      )}
     </div>
   )
 }
@@ -315,36 +339,122 @@ function Action() {
     updateState({ tasks })
   }
 
+  const handleSplitTask = (taskId, newTaskTexts, splitMode, inheritNotes) => {
+    const taskToSplit = state.tasks.find(t => t.id === taskId)
+    if (!taskToSplit) return
+
+    // Split the task using the utility function
+    const { parentTask, childTasks } = splitTask(taskToSplit, newTaskTexts, {
+      mode: splitMode,
+      inheritNotes
+    })
+
+    // Find the index of the original task in the task list
+    const taskIndex = state.tasks.findIndex(t => t.id === taskId)
+
+    let updatedTasks
+    if (splitMode === 'replace') {
+      // Replace original with child tasks
+      updatedTasks = [
+        ...state.tasks.slice(0, taskIndex),
+        ...childTasks,
+        ...state.tasks.slice(taskIndex + 1)
+      ]
+    } else {
+      // Keep or archive parent, insert children after parent
+      updatedTasks = [
+        ...state.tasks.slice(0, taskIndex),
+        parentTask,
+        ...childTasks,
+        ...state.tasks.slice(taskIndex + 1)
+      ]
+    }
+
+    // Update list entries
+    let updatedListEntries = state.listEntries
+
+    if (splitMode === 'replace' || splitMode === 'archive') {
+      // Mark parent's list entries as actioned
+      updatedListEntries = state.listEntries.map(e =>
+        e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
+      )
+    } else if (splitMode === 'keep') {
+      // Keep parent entry but mark as actioned
+      updatedListEntries = state.listEntries.map(e =>
+        e.taskId === taskId && e.status === 'active' ? markEntryActioned(e) : e
+      )
+    }
+
+    // Add list entries for child tasks
+    const childEntries = childTasks.map(child => createListEntry(child.id))
+    updatedListEntries = [...updatedListEntries, ...childEntries]
+
+    // Update split preference in settings
+    const updatedSettings = {
+      ...state.settings,
+      splitPreference: splitMode,
+      inheritNotesOnSplit: inheritNotes
+    }
+
+    updateState({
+      tasks: updatedTasks,
+      listEntries: updatedListEntries,
+      settings: updatedSettings
+    })
+
+    setSelectedTaskId(null)
+  }
+
+  const handleToggleCollapse = (taskId) => {
+    const tasks = state.tasks.map(t =>
+      t.id === taskId ? toggleCollapse(t) : t
+    )
+    updateState({ tasks })
+  }
+
+  const handleCompleteParent = (taskId) => {
+    completeTask(taskId)
+  }
+
   const markedTasks = state.tasks.filter(t => t.status === 'active' && t.marked)
+  const visibleMarkedTasks = getVisibleTasks(markedTasks)
   const selectedTask = selectedTaskId ? state.tasks.find(t => t.id === selectedTaskId) : null
 
   return (
     <div className="mode-panel">
       <h2>Act on marked tasks</h2>
       <div className="task-list">
-        {markedTasks.length === 0 ? (
+        {visibleMarkedTasks.length === 0 ? (
           <p>Mark tasks in Scanning mode to see them here.</p>
         ) : (
-          markedTasks.map(task => (
-            <article key={task.id} className="task-card">
-              <header>
-                <h3>{task.text}</h3>
-                {hasActiveTimer(task) && (
-                  <span className="timer-indicator" title="Timer running">⏱️</span>
-                )}
-              </header>
-              <footer>
-                <button onClick={() => setSelectedTaskId(task.id)} className="secondary">
-                  More
-                </button>
-                <button onClick={() => reenterTask(task.id)} className="secondary">
-                  Re-enter
-                </button>
-                <button onClick={() => completeTask(task.id)} className="primary">
-                  Complete
-                </button>
-              </footer>
-            </article>
+          visibleMarkedTasks.map(task => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              tasks={state.tasks}
+              onToggleCollapse={handleToggleCollapse}
+              onCompleteParent={handleCompleteParent}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ margin: 0, flex: 1 }}>{task.text}</h3>
+                  {hasActiveTimer(task) && (
+                    <span className="timer-indicator" title="Timer running">⏱️</span>
+                  )}
+                </header>
+                <footer style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => setSelectedTaskId(task.id)} className="secondary">
+                    More
+                  </button>
+                  <button onClick={() => reenterTask(task.id)} className="secondary">
+                    Re-enter
+                  </button>
+                  <button onClick={() => completeTask(task.id)} className="primary">
+                    Complete
+                  </button>
+                </footer>
+              </div>
+            </TaskCard>
           ))
         )}
       </div>
@@ -356,6 +466,7 @@ function Action() {
           onComplete={completeTask}
           onReenter={reenterTask}
           onUpdate={handleTaskUpdate}
+          onSplit={handleSplitTask}
         />
       )}
     </div>

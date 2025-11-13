@@ -9,6 +9,8 @@ const defaultState = {
   settings: {
     scanDirection: 'forward',
     guideMode: true,
+    splitPreference: 'replace',
+    inheritNotesOnSplit: false,
   },
   metrics: {
     totalScans: 0,
@@ -73,6 +75,8 @@ function loadState() {
       ...task,
       lastDottedOn: task.lastDottedOn || null,
       tags: task.tags || [],
+      childIds: task.childIds || [],
+      isCollapsed: task.isCollapsed || false,
     }))
 
     const guide = parsed.guide
@@ -88,11 +92,16 @@ function loadState() {
         .map(task => createListEntry(task.id))
     }
 
+    const settings = parsed.settings
+      ? { ...clone(defaultState.settings), ...parsed.settings }
+      : clone(defaultState.settings)
+
     return {
       ...clone(defaultState),
       ...parsed,
       tasks,
       listEntries,
+      settings,
       daily: parsed.daily || {},
       guide,
     }
