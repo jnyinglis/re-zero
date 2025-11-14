@@ -65,11 +65,12 @@ Purpose: Convert marked tasks into progress.
 - Optional: attach additional task metadata (e.g., notes, billing category).
 - Optional: mark the **level** of a task (Project, Step, Meta). Defaults to "Unspecified" unless user chooses or app infers.    
 
-### 4. **Maintenance Mode**  
-Purpose: Keep the list clean and relevant.  
-- Delete tasks that now “stand out” as irrelevant.  
-- Archive deleted tasks for reflection.  
-- Re-enter recurring tasks when needed.  
+### 4. **Maintenance Mode**
+Purpose: Keep the list clean and relevant.
+- Delete tasks that now "stand out" as irrelevant.
+- Archive deleted tasks for reflection.
+- Re-enter recurring tasks when needed.
+- **Data Management**: Export task data for backup, import from previous backups, or reset the app to start fresh.
 - **App Guidance**: Suggests reviewing long-dormant tasks, nudges when items seem stale.  
 
 ### 5. **Reflection Mode**
@@ -172,6 +173,169 @@ Split tasks behave like normal tasks. There is no structural penalty for editing
 
 ---
 
+## 5.3 Data Management
+
+### 5.3.1 Export Functionality
+
+**Purpose**: Allow users to create a backup of all their task data, settings, and progress for safekeeping, migration to another device, or archival purposes.
+
+**Export Format**: JSON file containing the complete application state:
+- All tasks (active, completed, archived) with full metadata
+- List entries and current list order
+- Settings (scan direction, guide mode preferences, split preferences)
+- Metrics and daily statistics
+- Guide progress
+- Time tracking data
+- Tags and task relationships
+
+**Export Options**:
+- **Full Export**: Complete state backup including all historical data
+- **Active Tasks Only**: Export only active tasks and current settings (for starting fresh on a new device while preserving work-in-progress)
+
+**File Naming**: Auto-generated filename with timestamp (e.g., `resistance-zero-backup-2025-11-14.json`)
+
+**Goals**:
+1. Provide peace of mind through data backup capability
+2. Enable device migration or multi-device workflow
+3. Support archival of completed projects
+4. Allow sharing of task structures (without forcing cloud sync)
+
+**Non-Goals**:
+- Do not create a complex backup versioning system
+- Do not force automatic cloud backup (keep it user-initiated)
+- Do not export to multiple formats initially (JSON only)
+
+### 5.3.2 Import Functionality
+
+**Purpose**: Restore previously exported data, merge tasks from another source, or migrate data from another device.
+
+**Import Modes**:
+1. **Replace**: Completely replace current data with imported data (with confirmation prompt)
+2. **Merge**: Add imported tasks to existing tasks (avoiding duplicates by ID)
+3. **Preview**: Show what will be imported before confirming
+
+**Safety Features**:
+- **Automatic Backup**: Before any import, automatically create a backup of current state
+- **Validation**: Verify imported file structure and data integrity
+- **Conflict Resolution**: For merge mode, handle duplicate task IDs gracefully
+- **Undo Option**: Allow reverting to pre-import state for a limited time
+
+**Import Flow**:
+1. User selects "Import Data" and chooses file
+2. App validates file format and displays preview of what will be imported
+3. User selects import mode (Replace/Merge)
+4. App creates automatic backup of current state
+5. Import executes with progress indicator
+6. Success confirmation with option to undo
+
+**Goals**:
+1. Safe restoration of backed-up data
+2. Easy migration between devices
+3. Merging of task lists from different sources (e.g., work and personal)
+4. Protection against accidental data loss during import
+
+**Non-Goals**:
+- Do not create complex merge conflict resolution UI
+- Do not support importing from other task management apps initially
+- Do not auto-sync between devices
+
+### 5.3.3 Initialize (Reset) Functionality
+
+**Purpose**: Reset the application to its default state, clearing all data and settings. Useful for starting completely fresh, clearing test data, or troubleshooting.
+
+**Initialize Options**:
+1. **Full Reset**: Clear all data and return to welcome screen (as if first-time user)
+2. **Reset Tasks Only**: Clear all tasks but preserve settings and preferences
+3. **Reset Settings Only**: Return settings to defaults but preserve tasks
+
+**Safety Features**:
+- **Automatic Backup**: Before reset, automatically create and download a backup file
+- **Confirmation Dialog**: Multi-step confirmation to prevent accidental resets
+  - First prompt: "Are you sure you want to reset?"
+  - Second prompt: Shows what will be deleted and confirms backup was created
+- **No Immediate Auto-Delete**: Backup remains in browser downloads for user to save
+- **Grace Period**: Option to restore from backup for 24 hours after reset (stored in separate localStorage key)
+
+**Initialize Flow**:
+1. User selects "Reset App" or "Initialize"
+2. App displays reset options (Full/Tasks Only/Settings Only)
+3. App creates automatic backup and prompts download
+4. Confirmation dialog shows what will be cleared
+5. User confirms (with safety checkbox or typed confirmation)
+6. App resets to selected state
+7. Success message with link to restore from backup if needed
+
+**Use Cases**:
+- New user wants to restart after exploring the app
+- User wants to start a new project phase with clean slate
+- Troubleshooting: clearing corrupted data
+- Demonstration/teaching: resetting to show fresh user experience
+
+**Goals**:
+1. Provide safe way to start completely fresh
+2. Support troubleshooting scenarios
+3. Enable demonstration/testing workflows
+4. Maintain data safety through automatic backup
+
+**Non-Goals**:
+- Do not make reset easily accessible (prevent accidents)
+- Do not support partial deletion of tasks (use Maintenance mode for that)
+- Do not sync reset across devices
+
+### 5.3.4 UI Placement Recommendations
+
+The data management features should be accessible but not intrusive, aligned with the minimalist philosophy while ensuring users can find them when needed.
+
+**Recommended Primary Location: Maintenance Mode**
+
+Maintenance Mode is the natural home for data management features because:
+- It's already focused on "housekeeping" tasks (archiving, deleting)
+- Users are in a maintenance mindset, considering what to keep/discard
+- Export/backup conceptually aligns with archiving
+- It's a dedicated mode rather than always-visible UI
+
+**Implementation in Maintenance Mode**:
+- Add a "Data Management" section below the task list
+- Three buttons in a dedicated panel:
+  - **Export Data** (with icon: download/save symbol)
+  - **Import Data** (with icon: upload/restore symbol)
+  - **Reset App** (with icon: caution/refresh symbol, visually distinct)
+- Minimal visual weight - small buttons or links, not prominent
+- Expandable help text explaining each option
+
+**Recommended Secondary Location: Settings Icon in Footer**
+
+For quicker access across all modes:
+- Small settings gear icon in the Footer (right side)
+- Opens a compact Settings modal/panel with:
+  - Scan direction preference (already in settings)
+  - Data management options (Export, Import, Reset)
+  - Guide mode toggle
+  - Link to help/documentation
+- Modal closes after action is complete or user dismisses
+
+**Alternative: Intro Page (for Initialize only)**
+
+Add a subtle "Start Fresh" or "Reset Progress" link on the IntroPage:
+- For users who want to restart the guided experience
+- Only appears if app has existing data
+- Provides quick path to reset without entering the app
+
+**Recommended Approach**:
+1. **Primary**: Add data management section to Maintenance Mode (most discoverable, thematically appropriate)
+2. **Secondary**: Add settings icon to Footer for cross-mode access (convenience)
+3. **Tertiary**: Add "Reset" option to IntroPage for users returning to start fresh
+
+**UI/UX Principles**:
+- Keep visual prominence minimal (these are infrequent operations)
+- Group all data management in one location per mode
+- Use clear, non-technical labels ("Export" not "Backup", "Reset" not "Initialize")
+- Provide inline help text or tooltips
+- Make destructive actions (Import-Replace, Reset) visually distinct with warning colors
+- Always show confirmation dialogs for destructive operations
+
+---
+
 ## 6. User Stories  
 
 1. *As a user, I want to enter tasks quickly* without worrying about structure, categories, or deadlines.
@@ -191,6 +355,11 @@ Split tasks behave like normal tasks. There is no structural penalty for editing
 15. *As a user, when I start a task and discover it requires more steps*, I want to split it mid-flow, so I can capture the steps without breaking focus.
 16. *As a user, when scanning a long list*, I want to split a task without navigating away, so the scan rhythm remains uninterrupted.
 17. *As a user, I want the option for the original task to be replaced with its split items, or kept as a parent/story card with child items*, so I can choose the structure that suits the task.
+18. *As a user, I want to export all my task data* so I can back it up safely or move it to another device.
+19. *As a user, I want to import previously exported data* so I can restore my tasks after switching devices or recover from data loss.
+20. *As a user, I want the app to automatically back up my data before any destructive operation* so I never lose my work accidentally.
+21. *As a user, I want to reset the app to start completely fresh* without manually deleting every task.
+22. *As a user, I want clear warnings before any data-destructive operations* so I don't accidentally delete my work.
 
 ---
 
@@ -239,9 +408,22 @@ Split tasks behave like normal tasks. There is no structural penalty for editing
 - **No penalties**: Split tasks behave like normal tasks with full editing capabilities.
 
 ### Guidance Layer
-- Contextual prompts embedded in each mode.  
-- Explanations and encouragement drawn directly from Forster’s principles.  
-- Occasional expert tips (e.g., “Re-entry is expected, not failure”).  
+- Contextual prompts embedded in each mode.
+- Explanations and encouragement drawn directly from Forster's principles.
+- Occasional expert tips (e.g., "Re-entry is expected, not failure").
+
+### Data Management
+- **Export**: Generate JSON backup file containing complete app state (tasks, settings, metrics, tags, time logs)
+- **Export options**: Full export or active tasks only
+- **Import**: Restore from previously exported JSON file
+- **Import modes**: Replace all data, merge with existing, or preview before importing
+- **Automatic backup**: Before any destructive operation (import-replace, reset), automatically create backup
+- **Reset/Initialize**: Clear all data or selectively reset tasks/settings
+- **Safety confirmations**: Multi-step confirmation dialogs for destructive operations
+- **Undo capability**: Limited-time ability to revert destructive operations
+- **File validation**: Verify integrity and structure of imported data before applying
+- **Accessibility**: Primary location in Maintenance Mode, secondary access via settings icon
+- **Error handling**: Clear messages for import failures, corrupted files, or validation errors
 
 ---
 
@@ -276,7 +458,11 @@ Split tasks behave like normal tasks. There is no structural penalty for editing
 - **Tag-based Reports**: Time and completion analytics grouped by tag.
 - **Community / Sharing**: Optional discussion groups.
 - **AI Coaching**: Personalized suggestions for breaking down tasks.
-- **Export Options**: CSV/PDF reports of time logs for billing clients, with tag-based grouping.  
+- **Advanced Export Options**: CSV/PDF reports of time logs for billing clients, with tag-based grouping (JSON export is already implemented).
+- **Import from Other Apps**: Support importing tasks from other task management systems (Todoist, Things, etc.).
+- **Encrypted Backups**: Optional password-protected export files for sensitive task data.
+- **Automated Scheduled Backups**: Optional automatic daily/weekly exports to local storage or cloud.
+- **Cloud Sync**: Optional cloud synchronization between devices (while maintaining offline-first principle).  
 
 ---
 
@@ -293,3 +479,10 @@ Split tasks behave like normal tasks. There is no structural penalty for editing
 - **Task splitting could encourage over-planning**: Users might split tasks excessively instead of taking action. The split UI must remain fast and low-friction to avoid this.
 - **Parent mode could create hierarchy bloat**: If not carefully designed, parent/child relationships could undermine the flat list philosophy. Parent mode must remain optional and minimal.
 - **Split workflow interruption**: If splitting takes too long or requires too many decisions, it could break the user's flow and increase resistance instead of reducing it.
+- **Data loss during import**: Users could accidentally replace all their data with an old backup or incorrect file. Automatic backups and clear confirmations are essential.
+- **File corruption or invalid imports**: Users might try to import corrupted files or files from incompatible sources. Robust validation and clear error messages are required.
+- **Export/Import complexity**: If the export/import flow requires too many steps or decisions, users may avoid using it for backups, defeating the purpose.
+- **Reset feature misuse**: Users might accidentally reset their app, losing all data. Multi-step confirmations and automatic backups before reset are critical.
+- **Backup file management**: Users may accumulate many backup files and become confused about which is current. Clear file naming with timestamps helps, but user education is needed.
+- **Large file sizes**: As task lists grow with time tracking and metadata, export files could become large. Consider compression or selective export options.
+- **Privacy concerns**: Export files contain all user data in plain text JSON. Users should be warned not to share backup files containing sensitive task information.
