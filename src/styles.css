@@ -1,34 +1,51 @@
 :root {
   color-scheme: light dark;
-  /* Light mode colors - matching Zo Computer */
-  --bg: #fafaf9;
+  /* Zo Computer exact color palette - Stone theme */
+  --bg: #fafaf9; /* stone-50 */
   --surface: #ffffff;
-  --border: #e7e5e4;
-  --primary: #6366f1;
-  --accent: #8b5cf6;
-  --danger: #ef4444;
-  --text: #1c1917;
-  --muted: #78716c;
-  --shadow: rgba(0, 0, 0, 0.05);
+  --surface-elevated: rgba(255, 255, 255, 0.95);
+  --surface-translucent: rgba(255, 255, 255, 0.9);
+  --border: #e7e5e4; /* stone-200 */
+  --border-subtle: #f5f5f4; /* stone-100 */
+  --primary: #6366f1; /* indigo-500 */
+  --primary-hover: #5558e3;
+  --accent: #8b5cf6; /* purple-500 */
+  --accent-hover: #7c3aed;
+  --danger: #ef4444; /* red-500 */
+  --text: #1c1917; /* stone-900 */
+  --text-secondary: #44403c; /* stone-700 */
+  --muted: #78716c; /* stone-500 */
+  --shadow: rgba(0, 0, 0, 0.04);
+  --shadow-md: rgba(0, 0, 0, 0.08);
+  --shadow-lg: rgba(0, 0, 0, 0.12);
 
-  /* Monospace font stack */
-  font-family: "Berkeley Mono", "JetBrains Mono", "Fira Code", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+  /* Monospace font stack - Berkeley Mono priority */
+  font-family: "Berkeley Mono", "Berkeley Mono Variable", "JetBrains Mono", "Fira Code", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1c1917;
-    --surface: #292524;
-    --border: #44403c;
-    --primary: #818cf8;
-    --accent: #a78bfa;
-    --danger: #f87171;
-    --text: #fafaf9;
-    --muted: #a8a29e;
-    --shadow: rgba(0, 0, 0, 0.3);
+    --bg: #1c1917; /* stone-900 */
+    --surface: #292524; /* stone-800 */
+    --surface-elevated: rgba(41, 37, 36, 0.95);
+    --surface-translucent: rgba(41, 37, 36, 0.9);
+    --border: #44403c; /* stone-700 */
+    --border-subtle: #3c3937; /* stone-750 */
+    --primary: #818cf8; /* indigo-400 */
+    --primary-hover: #6d7ae8;
+    --accent: #a78bfa; /* purple-400 */
+    --accent-hover: #9574f0;
+    --danger: #f87171; /* red-400 */
+    --text: #fafaf9; /* stone-50 */
+    --text-secondary: #d6d3d1; /* stone-300 */
+    --muted: #a8a29e; /* stone-400 */
+    --shadow: rgba(0, 0, 0, 0.25);
+    --shadow-md: rgba(0, 0, 0, 0.35);
+    --shadow-lg: rgba(0, 0, 0, 0.45);
   }
 }
 
@@ -37,12 +54,21 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
+  /* Mobile optimizations */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+  /* Better font rendering */
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .app-header {
   padding: 1rem 1.5rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -61,8 +87,10 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 .app-header h1 {
   margin: 0;
   font-size: 1.5rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .guidance {
@@ -89,7 +117,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .install-btn:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.install-btn:active {
+  transform: scale(0.98);
 }
 
 .app {
@@ -97,6 +129,9 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   flex-direction: column;
   gap: 1.5rem;
   padding: 1.5rem;
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+  padding-left: max(1.5rem, env(safe-area-inset-left));
+  padding-right: max(1.5rem, env(safe-area-inset-right));
   flex: 1 1 auto;
 }
 
@@ -165,7 +200,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .guide-nav-btn.primary:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.guide-nav-btn:active {
+  transform: scale(0.98);
 }
 
 .guide-nav-btn.cancel {
@@ -209,18 +248,22 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 .content {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 1.25rem;
+  border-radius: 8px;
+  padding: 1.5rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   order: 1;
+  box-shadow: 0 1px 3px var(--shadow);
 }
 
 .mode-panel h2 {
   margin-top: 0;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .mode-panel.hidden {
@@ -277,7 +320,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .guide-start-btn:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.guide-start-btn:active {
+  transform: scale(0.98);
 }
 
 .task-form {
@@ -296,36 +343,44 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 .task-form input,
 .task-form textarea,
 .task-form select {
-  padding: 0.625rem 0.75rem;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  font-size: 1rem;
   font-family: inherit;
   background: var(--bg);
   color: var(--text);
+  min-height: 48px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .task-form input:focus,
 .task-form textarea:focus,
 .task-form select:focus {
-  outline: 2px solid var(--primary);
-  outline-offset: 0;
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .task-form button {
-  padding: 0.625rem 1rem;
-  border-radius: 4px;
+  padding: 0.875rem 1.25rem;
+  border-radius: 8px;
   border: none;
   background: var(--primary);
   color: white;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  min-height: 48px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .task-form button:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.task-form button:active {
+  transform: scale(0.98);
 }
 
 .task-list-items {
@@ -419,38 +474,46 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 
 .quick-task-input {
   flex: 1;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 0.875rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
   background: var(--bg);
   color: var(--text);
   font-family: inherit;
+  min-height: 48px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .quick-task-input:focus {
-  outline: 2px solid var(--primary);
-  outline-offset: 0;
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .quick-add-btn {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   background: var(--primary);
   color: white;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quick-add-btn:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.quick-add-btn:active {
+  transform: scale(0.95);
 }
 
 .list-preview ul,
@@ -551,7 +614,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .task-card button.primary:hover {
-  background: color-mix(in srgb, var(--accent) 90%, black);
+  background: var(--accent-hover);
+}
+
+.task-card button:active {
+  transform: scale(0.98);
 }
 
 .task-card button.destructive {
@@ -1297,7 +1364,8 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
-    padding: 1rem 1.5rem 0;
+    padding: 1rem 1rem 0;
+    gap: 1.25rem;
   }
 
   .modes {
@@ -1305,26 +1373,34 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--surface);
+    background: var(--surface-translucent);
     border-top: 1px solid var(--border);
-    padding: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 0.25rem;
+    gap: 0.5rem;
     z-index: 10;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 -1px 10px var(--shadow);
   }
 
   .mode-button {
-    padding: 0.6rem 0.25rem;
-    font-size: 0.7rem;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-align: center;
-    min-height: 44px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mode-button:active {
+    transform: scale(0.96);
   }
 
   .guide-controls {
@@ -1365,22 +1441,23 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 
   .quick-task-input {
     flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    padding: 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
     font-size: 1rem;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg);
+    min-height: 52px;
   }
 
   .quick-add-btn {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--primary);
     color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
+    font-size: 1.35rem;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1394,14 +1471,15 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   }
 
   .task-list-items li {
-    padding: 0.75rem;
+    padding: 1rem;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    background: var(--surface);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 52px;
   }
 
   .task-list-items li.project {
@@ -1696,7 +1774,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .big-scan-button:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.big-scan-button:active {
+  transform: scale(0.98);
 }
 
 .scan-progress {
@@ -1729,7 +1811,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .finish-scan-btn:hover {
-  background: color-mix(in srgb, var(--accent) 90%, black);
+  background: var(--accent-hover);
+}
+
+.finish-scan-btn:active {
+  transform: scale(0.98);
 }
 
 .current-task {
@@ -1776,7 +1862,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .scan-btn.primary:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.scan-btn:active {
+  transform: scale(0.98);
 }
 
 .scan-btn.secondary {
@@ -1946,8 +2036,9 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   }
 
   .content {
-    margin-bottom: 90px;
-    padding: 1rem;
+    margin-bottom: 110px;
+    padding: 1.25rem;
+    border-radius: 12px;
   }
 
   .app-footer {
@@ -2007,6 +2098,9 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   font-size: 2rem;
   margin-bottom: 1rem;
   color: var(--text);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .intro-description {
@@ -2059,7 +2153,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .start-rezero-btn:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.start-rezero-btn:active {
+  transform: scale(0.98);
 }
 
 /* Instructions panel styles */
@@ -2073,6 +2171,9 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: var(--text);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
 }
 
 .step-intro {
@@ -2131,7 +2232,11 @@ body:not(:has(#introPage:not(.hidden))) .app-header {
 }
 
 .start-step-btn:hover {
-  background: color-mix(in srgb, var(--primary) 90%, black);
+  background: var(--primary-hover);
+}
+
+.start-step-btn:active {
+  transform: scale(0.98);
 }
 
 /* No tasks message */
