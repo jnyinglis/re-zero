@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { createListEntry } from '../utils/taskUtils'
 
-const STORAGE_KEY = 'rz-state-v1'
+export const STORAGE_KEY = 'rz-state-v1'
 
-const defaultState = {
+export const defaultState = {
   tasks: [],
   listEntries: [],
   settings: {
@@ -11,6 +11,7 @@ const defaultState = {
     guideMode: true,
     splitPreference: 'replace',
     inheritNotesOnSplit: false,
+    theme: 'auto', // 'light', 'dark', or 'auto'
   },
   metrics: {
     totalScans: 0,
