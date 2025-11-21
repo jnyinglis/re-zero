@@ -19,8 +19,8 @@
   --shadow-md: rgba(0, 0, 0, 0.08);
   --shadow-lg: rgba(0, 0, 0, 0.12);
 
-  /* Monospace font stack - Berkeley Mono priority */
-  font-family: "Berkeley Mono", "Berkeley Mono Variable", "JetBrains Mono", "Fira Code", "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+  /* Sans-serif font stack - Hanken Grotesk priority */
+  font-family: "Hanken Grotesk", "Hanken Grotesk Fallback", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
